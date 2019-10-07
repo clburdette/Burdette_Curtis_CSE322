@@ -1,14 +1,13 @@
 <html>
   <head>
-<img id="playerShip" src="ship.png" alt="blah">
-<canvas id="gameCanvas"></canvas>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <img id="playerShip" src="ship.png" alt="">
+    <canvas id="gameCanvas"></canvas>
+    <link rel="stylesheet" type="text/css" href="gameStyle.css">
+    <script type="text/javascript" src="model.js"></script>
+    <script type="text/javascript" src="view.js"></script>
+    <script type="text/javascript" src="controller.js"></script>
   </head>
-  <body>
-<script>
-	var canvas = document.getElementById("gameCanvas");
-	var player = canvas.getContext("2d");
-	var playerShip = document.getElementById("playerShip").onload;
-	player.drawImage(playerShip, 100, 100, 32, 32);
-</script>	
+  <body>	
   </body>
 </html>
