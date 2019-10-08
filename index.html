@@ -2,7 +2,6 @@
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <img id="playerShip" src="ship.png" alt="">
-    <canvas id="gameCanvas"></canvas>
     <link rel="stylesheet" type="text/css" href="gameStyle.css">
     <script type="text/javascript" src="model.js"></script>
     <script type="text/javascript" src="view.js"></script>
@@ -11,7 +10,9 @@
   <body>
     <div id="header"></div>
     <div id="canvasWin">
-      <canvas id="gameCanvas"></canvas>  	
+      <canvas id="midground"></canvas>
+      <canvas id="foreground"></canvas>
+      <canvas id="collisionSpace"></canvas>  	
     </div>		
   </body>
 </html>
