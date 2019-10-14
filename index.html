@@ -1,18 +1,82 @@
 <html>
   <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <img id="playerShip" src="ship.png" alt="">
-    <link rel="stylesheet" type="text/css" href="gameStyle.css">
-    <script type="text/javascript" src="model.js"></script>
-    <script type="text/javascript" src="view.js"></script>
-    <script type="text/javascript" src="controller.js"></script>
   </head>
   <body>
-    <div id="header"></div>
-    <div id="canvasWin">
-      <canvas id="midground"></canvas>
-      <canvas id="foreground"></canvas>
-      <canvas id="collisionSpace"></canvas>  	
-    </div>		
+    <canvas id="canvas" width="750" height="400" style="border:1px solid lightgrey;"</canvas>	
+    <script>
+      var canvas;
+      var context;
+      var startTime;
+
+      function draw()
+      {
+        var randomColor = Math.random() > 0.5? '#ff8080' : '#0099b0';
+        context.fillStyle = randomColor;
+        context.fillRect(100,50,200,175);
+      }
+
+      function gameLoop(currentTime)
+      {
+        var seconds = (currentTime - startTime)/1000;
+        var framesPerSec = Math.round(1/seconds);
+        var i; 
+        startTime = currentTime;
+
+        for(i of gameObjects){gameObjects[i].update(seconds);}
+
+        context.clearRect(0,0,canvas.width, canvas.height);
+
+        for(i of gameObjects){gameObjects[i].draw();}
+
+        context.fillStyle = 'white';
+        context.fillRect(0,0,200,100);
+        context.font = '25px Arial';
+        context.fillStyle = 'black';
+        context.fillText("fps: " + framesPerSec, 10, 30);
+
+        window.requestAnimationFrame(gameLoop);
+      }
+      function init()
+      {
+        canvas = document.getElementById('canvas');
+        context = canvas.getContext('2d');
+        window.requestAnimationFrame(gameLoop);
+      }
+
+      class GameObject
+      {
+        constructor(context, xPos, yPos, xVel, yVel)
+        {
+          this.context = context;
+          this.xPos = xPos;
+          this.yPos = yPos; 
+          this.xVel = xVel;
+          this.yVel = yVel;
+          this.isColliding = false;
+        }
+      }
+      class Entity extends GameObject
+      {
+        constructor(context, xPos, yPos, xVel, yVel, size, health)
+        {
+          super(context, xPos, yPos, xVel, yVel);
+          this.size = size;
+          this.health = health;
+        }
+        draw()
+        {
+          this.context.fillStyle = this.isColliding?'#ff8080':'#0099b0';
+          this.context.beginPath();
+          this.context.arc(xPos, yPos, size, 0, 2*Math.PI);
+          this.context.fill();
+        }
+        update(seconds, damage)
+        {
+          this.xPos += this.xVel*seconds;
+          this.yPos += this.yVel*seconds;
+          this.health -= damage;
+        }
+      window.onload = init();
+    </script>		
   </body>
 </html>
