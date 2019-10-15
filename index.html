@@ -2,31 +2,26 @@
   <head>
   </head>
   <body>
-    <canvas id="canvas" width="750" height="400" style="border:1px solid lightgrey;"</canvas>	
+    <canvas id="canvas" width="750" height="400" style="border:1px solid lightgrey;"></canvas>	
     <script>
       var canvas;
       var context;
       var startTime;
-
-      function draw()
-      {
-        var randomColor = Math.random() > 0.5? '#ff8080' : '#0099b0';
-        context.fillStyle = randomColor;
-        context.fillRect(100,50,200,175);
-      }
+      var gameObjects = [];
 
       function gameLoop(currentTime)
       {
         var seconds = (currentTime - startTime)/1000;
         var framesPerSec = Math.round(1/seconds);
-        var i; 
         startTime = currentTime;
+ 
+        spawner();
 
-        for(i of gameObjects){gameObjects[i].update(seconds);}
+        for(var i=0; i < gameObjects.length; i++){gameObjects[i].update(seconds);}
 
         context.clearRect(0,0,canvas.width, canvas.height);
 
-        for(i of gameObjects){gameObjects[i].draw();}
+        for(var i=0; i < gameObjects.length; i++){gameObjects[i].draw();}
 
         context.fillStyle = 'white';
         context.fillRect(0,0,200,100);
@@ -43,6 +38,49 @@
         window.requestAnimationFrame(gameLoop);
       }
 
+/*      var makeGO = function(context, xPos, yPos, xVel, yVel)
+      {
+        gameObject = {};
+        gameObject.context=context;
+        gameObject.xPos = xPos;
+        gameObject.yPos = yPos; 
+        gameObject.xVel = xVel;
+        gameObject.yVel = yVel;
+        gameObject.isColliding = false;
+        
+        return gameObject;
+      }
+      var makeEntity = function(context, xPos, yPos, xVel, yVel, scale, health)
+      {
+        entity = Object.create(makeGO(xPos, yPos, xVel, yVel));
+        entity.scale = scale;
+        entity.health = health;
+        entity.draw = function()
+        {
+          this.context.fillStyle = this.isColliding?'#ff8080':'#0099b0';
+          this.context.beginPath();
+          this.context.arc(xPos, yPos, size, 0, 2*Math.PI);
+          this.context.fill();
+        }
+        entity.update = function(seconds, damage)
+        {
+          this.xPos += (this.xVel*seconds);
+          this.yPos += (this.yVel*seconds);
+          this.yPos -= 9.8*seconds;
+          this.health -= damage;
+        }
+        
+        return entity;
+      }
+*/
+     var spawner = function()
+      {
+        var randomX = Math.floor(Math.random() * 750);
+        var spawn = new Entity(context, 200, 200, 100, 100, 20)
+        gameObjects.push(spawn);
+      }
+     
+      window.onload = init();
       class GameObject
       {
         constructor(context, xPos, yPos, xVel, yVel)
@@ -55,28 +93,27 @@
           this.isColliding = false;
         }
       }
-      class Entity extends GameObject
+     class Entity extends GameObject
       {
-        constructor(context, xPos, yPos, xVel, yVel, size, health)
+        constructor(context, xPos, yPos, xVel, yVel, scale)
         {
           super(context, xPos, yPos, xVel, yVel);
-          this.size = size;
-          this.health = health;
+          this.scale = scale;
         }
         draw()
         {
           this.context.fillStyle = this.isColliding?'#ff8080':'#0099b0';
           this.context.beginPath();
-          this.context.arc(xPos, yPos, size, 0, 2*Math.PI);
+          this.context.arc(this.xPos, this.yPos, this.scale, 0, 2*Math.PI);
           this.context.fill();
         }
-        update(seconds, damage)
+        update(seconds)
         {
           this.xPos += this.xVel*seconds;
           this.yPos += this.yVel*seconds;
-          this.health -= damage;
         }
-      window.onload = init();
+      }
+
     </script>		
   </body>
 </html>
