@@ -2,27 +2,44 @@
   <head>
   </head>
   <body>
-    <div style="position:relative;">
-     <canvas id="canvas" width="1024" height="768" style="border:1px solid lightgrey; background-color:transparent; position:absolute; left:0px; top:0px; z-index:4;"></canvas>	
-     <canvas id="canvas2" width="1024" height="768" style="border:1px solid lightgrey; background-color:transparent; position:absolute; left:0px; top:0px; z-index:3;"></canvas>
-     <canvas id="canvas3" width="1024" height="768" style="border:1px solid lightgrey; background-color:transparent; position:absolute; left:0px; top:0px; z-index:2;"></canvas>
-     <canvas id="canvas4" width="1024" height="768" style="border:1px solid lightgrey; background-color:transparent; position:absolute; left:0px; top:0px; z-index:1;"></canvas>
+    <div style="position:relative">
+     <canvas id="canvas0" width="1024" height="768" style="border:1px solid lightgrey; background-color:red; position:absolute; left:0px; top:0px; z-index:1;"></canvas>		
+     <canvas id="canvas" width="1024" height="768" style="border:1px solid lightgrey; background-color:transparent; position:absolute; left:0px; top:0px; z-index:9;"></canvas>	
+     <canvas id="canvas2" width="1024" height="768" style="border:1px solid lightgrey; background-color:transparent; position:absolute; left:0px; top:0px; z-index:8;"></canvas>
+     <canvas id="canvas3" width="1024" height="768" style="border:1px solid lightgrey; background-color:transparent; position:absolute; left:0px; top:0px; z-index:7;"></canvas>
+     <canvas id="canvas4" width="1024" height="768" style="border:1px solid lightgrey; background-color:transparent; position:absolute; left:0px; top:0px; z-index:6;"></canvas>
+     <canvas id="canvas5" width="1024" height="768" style="border:1px solid lightgrey; background-color:transparent; position:absolute; left:0px; top:0px; z-index:5;"></canvas>
+     <canvas id="canvas6" width="1024" height="768" style="border:1px solid lightgrey; background-color:transparent; position:absolute; left:0px; top:0px; z-index:4;"></canvas>
+     <canvas id="canvas7" width="1024" height="768" style="border:1px solid lightgrey; background-color:transparent; position:absolute; left:0px; top:0px; z-index:3;"></canvas>
+     <canvas id="canvas8" width="1024" height="768" style="border:1px solid lightgrey; background-color:transparent; position:absolute; left:0px; top:0px; z-index:2;"></canvas>
     </div>
     <script>
       var canvas;
       var canvas2;
       var canvas3;
       var canvas4;
+      var canvas5;
+      var canvas6;
+      var canvas7;
+      var canvas8;
       var context;
       var context2;
       var context3;
       var context4;
+      var context5;
+      var context6;
+      var context7;
+      var context8;
       var startTime;
       var gameObjects = [];
       var gameObjects2 = [];
       var gameObjects3 = [];
       var gameObjects4 = [];
-      var canvasObjects = [gameObjects,gameObjects2,gameObjects3,gameObjects4];
+      var gameObjects5 = [];
+      var gameObjects6 = [];
+      var gameObjects7 = [];
+      var gameObjects8 = [];
+      var canvasObjects = [gameObjects,gameObjects2,gameObjects3,gameObjects4,gameObjects5,gameObjects6,gameObjects7,gameObjects8];
 
       class GameObject
       {
@@ -47,10 +64,14 @@
         }
         draw()
         {
-          if(this.context==context){this.context.fillStyle = '#FFCC88';}
-          if(this.context==context2){this.context.fillStyle = '#FFFF88';}
-          if(this.context==context3){this.context.fillStyle = '#88FF88';}
-          if(this.context==context4){this.context.fillStyle = '#88FFFF';}
+          if(this.context==context8){this.context.fillStyle = '#CC0000';}
+          if(this.context==context7){this.context.fillStyle = '#BB0000';}
+          if(this.context==context6){this.context.fillStyle = '#AA0000';}
+          if(this.context==context5){this.context.fillStyle = '#990000';}
+          if(this.context==context4){this.context.fillStyle = '#880000';}
+          if(this.context==context3){this.context.fillStyle = '#770000';}
+          if(this.context==context2){this.context.fillStyle = '#660000';}
+          if(this.context==context){this.context.fillStyle = '#110000';}
           this.context.beginPath();
           this.context.arc(this.xPos, this.yPos, this.scale, 0, 2*Math.PI);
           this.context.fill();
@@ -80,6 +101,14 @@
         context3 = canvas3.getContext('2d');
         canvas4 = document.getElementById('canvas4');
         context4 = canvas4.getContext('2d');
+        canvas5 = document.getElementById('canvas5');
+        context5 = canvas5.getContext('2d');
+        canvas6 = document.getElementById('canvas6');
+        context6 = canvas6.getContext('2d');
+        canvas7 = document.getElementById('canvas7');
+        context7 = canvas7.getContext('2d');
+        canvas8 = document.getElementById('canvas8');
+        context8 = canvas8.getContext('2d');
         window.requestAnimationFrame(gameLoop);
       }
 
@@ -143,6 +172,10 @@
         if(objects==gameObjects2){currentContext = context2;}
         if(objects==gameObjects3){currentContext = context3;}
         if(objects==gameObjects4){currentContext = context4;}
+        if(objects==gameObjects5){currentContext = context5;}
+        if(objects==gameObjects6){currentContext = context6;}
+        if(objects==gameObjects7){currentContext = context7;}
+        if(objects==gameObjects8){currentContext = context8;}
         if(!spawnToCollide(randomX, randomY, ranSize, objects))
         {
           var spawn = new Entity(currentContext, randomX, randomY, ranXVel, ranYVel, ranSize, ranDensity);
@@ -241,6 +274,10 @@
         context2.clearRect(0,0,canvas.width, canvas.height);
         context3.clearRect(0,0,canvas.width, canvas.height);
         context4.clearRect(0,0,canvas.width, canvas.height);
+        context5.clearRect(0,0,canvas.width, canvas.height);
+        context6.clearRect(0,0,canvas.width, canvas.height);
+        context7.clearRect(0,0,canvas.width, canvas.height);
+        context8.clearRect(0,0,canvas.width, canvas.height);
       }
       function drawLoop()
       {
