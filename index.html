@@ -3,88 +3,27 @@
   </head>
   <body>
     <div style="position:relative;">
-     <canvas id="canvas" width="1024" height="768" style="border:1px solid lightgrey; background-color:transparent; position:absolute; left:0px; top:0px; z-index:2;"></canvas>	
-     <canvas id="canvas2" width="1024" height="768" style="border:1px solid lightgrey; background-color:transparent; position:absolute; left:0px; top:0px; z-index:1;"></canvas>
+     <canvas id="canvas" width="1024" height="768" style="border:1px solid lightgrey; background-color:transparent; position:absolute; left:0px; top:0px; z-index:4;"></canvas>	
+     <canvas id="canvas2" width="1024" height="768" style="border:1px solid lightgrey; background-color:transparent; position:absolute; left:0px; top:0px; z-index:3;"></canvas>
+     <canvas id="canvas3" width="1024" height="768" style="border:1px solid lightgrey; background-color:transparent; position:absolute; left:0px; top:0px; z-index:2;"></canvas>
+     <canvas id="canvas4" width="1024" height="768" style="border:1px solid lightgrey; background-color:transparent; position:absolute; left:0px; top:0px; z-index:1;"></canvas>
     </div>
     <script>
       var canvas;
       var canvas2;
+      var canvas3;
+      var canvas4;
       var context;
       var context2;
+      var context3;
+      var context4;
       var startTime;
       var gameObjects = [];
       var gameObjects2 = [];
+      var gameObjects3 = [];
+      var gameObjects4 = [];
+      var canvasObjects = [gameObjects,gameObjects2,gameObjects3,gameObjects4];
 
-      function gameLoop(currentTime)
-      {
-        var seconds = (currentTime - startTime)/1000;
-        var framesPerSec = Math.round(1/seconds);
-        startTime = currentTime;
- 
-        spawner();
-        spawner2();
-        
-        checkPosition();
-        checkPosition2();
-
-        for(var i=0; i < gameObjects.length; i++){gameObjects[i].update(seconds);}
-        for(var i=0; i < gameObjects2.length; i++){gameObjects2[i].update(seconds);}
-
-        detectCollision();
-        detectCollision2();
-
-        context.clearRect(0,0,canvas.width, canvas.height);
-        context2.clearRect(0,0,canvas.width, canvas.height);
-
-        for(var i=0; i < gameObjects.length; i++){gameObjects[i].draw();}
-        for(var i=0; i < gameObjects2.length; i++){gameObjects2[i].draw();}
-
-        context.font = '25px Arial';
-        context.fillStyle = 'black';
-        context.fillText("fps: " + framesPerSec, 10, 30);
-
-        window.requestAnimationFrame(gameLoop);
-      }
-      function init()
-      {
-        canvas = document.getElementById('canvas');
-        context = canvas.getContext('2d');
-        canvas2 = document.getElementById('canvas2');
-        context2 = canvas2.getContext('2d');
-        window.requestAnimationFrame(gameLoop);
-      }
-      var spawner = function()
-      {
-        var randomX = Math.floor(Math.random() * 1024);
-        var randomY = Math.floor(Math.random() * 768);
-        var ranXVel = Math.floor(Math.random() * 200)-100;
-        var ranYVel = Math.floor(Math.random() * 200)-100;
-        var ranSize = Math.floor(Math.random() * 90) + 10;
-        var ranDensity = Math.floor(Math.random() * 50) + 1;
-        if(!spawnToCollide(randomX, randomY, ranSize))
-        {
-          var spawn = new Entity(context, randomX, randomY, ranXVel, ranYVel, ranSize, ranDensity);
-          gameObjects.push(spawn);
-        }
-      }
-
-      var spawner2 = function()
-      {
-        var randomX = Math.floor(Math.random() * 1024);
-        var randomY = Math.floor(Math.random() * 768);
-        var ranXVel = Math.floor(Math.random() * 200)-100;
-        var ranYVel = Math.floor(Math.random() * 200)-100;
-        var ranSize = Math.floor(Math.random() * 90) + 10;
-        var ranDensity = Math.floor(Math.random() * 50) + 1;
-        if(!spawnToCollide2(randomX, randomY, ranSize))
-        {
-          var spawn = new Entity(context2, randomX, randomY, ranXVel, ranYVel, ranSize, ranDensity);
-          gameObjects2.push(spawn);
-        }
-      }
-     
-      window.onload = init();
-      
       class GameObject
       {
         constructor(context, xPos, yPos, xVel, yVel)
@@ -97,6 +36,7 @@
           this.isColliding = false;
         }
       }
+
      class Entity extends GameObject
       {
         constructor(context, xPos, yPos, xVel, yVel, scale, density)
@@ -107,8 +47,10 @@
         }
         draw()
         {
-          if(this.context==context2){this.context.fillStyle = '#FFCC88';}
-          if(this.context==context){this.context.fillStyle = '#88CCFF';}
+          if(this.context==context){this.context.fillStyle = '#FFCC88';}
+          if(this.context==context2){this.context.fillStyle = '#FFFF88';}
+          if(this.context==context3){this.context.fillStyle = '#88FF88';}
+          if(this.context==context4){this.context.fillStyle = '#88FFFF';}
           this.context.beginPath();
           this.context.arc(this.xPos, this.yPos, this.scale, 0, 2*Math.PI);
           this.context.fill();
@@ -125,15 +67,58 @@
           this.yPos += this.yVel*seconds;
         }
       }
-      function spawnToCollide(spawnXPos,spawnYPos,sizeToSpawn)
+
+
+
+      function init() //set up canvases and start game loop
+      {
+        canvas = document.getElementById('canvas');
+        context = canvas.getContext('2d');
+        canvas2 = document.getElementById('canvas2');
+        context2 = canvas2.getContext('2d');
+        canvas3 = document.getElementById('canvas3');
+        context3 = canvas3.getContext('2d');
+        canvas4 = document.getElementById('canvas4');
+        context4 = canvas4.getContext('2d');
+        window.requestAnimationFrame(gameLoop);
+      }
+
+      window.onload = init(); //initialize on window load
+
+      function gameLoop(currentTime) //main game loop
+      {
+        var seconds = (currentTime - startTime)/1000;
+        var framesPerSec = Math.round(1/seconds);
+        startTime = currentTime;
+ 
+        spawnerLoop();
+
+        cleanUpLoop();
+        
+        updateLoop(seconds);
+
+        collisionLoop();
+
+        clearCanvases();
+
+        drawLoop();
+
+        context.font = '25px Arial';
+        context.fillStyle = 'black';
+        context.fillText("fps: " + framesPerSec, 10, 30);
+
+        window.requestAnimationFrame(gameLoop);
+      }
+
+      function spawnToCollide(spawnXPos,spawnYPos,sizeToSpawn,objects)
       {
         var obj1;
         var obj2;
         var willCollide = false;
         
-        for(i=0; i < gameObjects.length;i++)
+        for(i=0; i < objects.length;i++)
         {
-          obj1 = gameObjects[i];
+          obj1 = objects[i];
           var diffX = spawnXPos-obj1.xPos;
           var diffY = spawnYPos-obj1.yPos;
           var sqDistance= Math.pow(diffX,2) + Math.pow(diffY,2);
@@ -144,65 +129,85 @@
         }
         return willCollide;
       } 
-      function spawnToCollide2(spawnXPos,spawnYPos,sizeToSpawn)
+
+      var spawner = function(objects)
       {
-        var obj1;
-        var obj2;
-        var willCollide = false;
-        
-        for(i=0; i < gameObjects2.length;i++)
+        var randomX = Math.floor(Math.random() * 1024);
+        var randomY = Math.floor(Math.random() * 768);
+        var ranXVel = Math.floor(Math.random() * 200)-100;
+        var ranYVel = Math.floor(Math.random() * 200)-100;
+        var ranSize = Math.floor(Math.random() * 90) + 10;
+        var ranDensity = Math.floor(Math.random() * 50) + 1;
+        var currentContext;
+        if(objects==gameObjects){currentContext = context;}
+        if(objects==gameObjects2){currentContext = context2;}
+        if(objects==gameObjects3){currentContext = context3;}
+        if(objects==gameObjects4){currentContext = context4;}
+        if(!spawnToCollide(randomX, randomY, ranSize, objects))
         {
-          obj1 = gameObjects2[i];
-          var diffX = spawnXPos-obj1.xPos;
-          var diffY = spawnYPos-obj1.yPos;
-          var sqDistance= Math.pow(diffX,2) + Math.pow(diffY,2);
-          if (sqDistance <= Math.pow(obj1.scale + sizeToSpawn,2))
-          {
-              willCollide = true;
-          }
-        }
-        return willCollide;
-      } 
-      function checkPosition()
-      {
-        for(i=0; i < gameObjects.length; i++)
-        {
-          var obj = gameObjects[i];
-          if((obj.xPos-obj.scale*10)>canvas.width||
-             (obj.xPos+obj.scale*10)<0||
-             (obj.yPos-obj.scale*10)>canvas.height||
-             (obj.yPos+obj.scale*10)<0)
-          { gameObjects.splice(i,1);}
+          var spawn = new Entity(currentContext, randomX, randomY, ranXVel, ranYVel, ranSize, ranDensity);
+          objects.push(spawn);
         }
       }
-      function checkPosition2()
+
+      function spawnerLoop()
       {
-        for(i=0; i < gameObjects2.length; i++)
+        for(var i=0;i<canvasObjects.length;i++)
         {
-          var obj = gameObjects2[i];
-          if((obj.xPos-obj.scale*10)>canvas.width||
-             (obj.xPos+obj.scale*10)<0||
-             (obj.yPos-obj.scale*10)>canvas.height||
-             (obj.yPos+obj.scale*10)<0)
-          { gameObjects2.splice(i,1);}
-        }
-      }
-      function detectCollision()
-      {
-        var obj1;
-        var obj2;
-        
-        for(i=0; i < this.gameObjects.length;i++)
-        {
-          this.gameObjects[i].isColliding = false;
+          spawner(canvasObjects[i]);
         }
 
-        for(i=0; i < gameObjects.length;i++)
+      }
+
+      function cleanUpOffScreen(objects)
+      {
+        for(i=0; i < objects.length; i++)
         {
-          obj1 = gameObjects[i];
-          for(j=i+1; j < gameObjects.length;j++)
+          var obj = objects[i];
+          if((obj.xPos-obj.scale*10)>canvas.width||
+             (obj.xPos+obj.scale*10)<0||
+             (obj.yPos-obj.scale*10)>canvas.height||
+             (obj.yPos+obj.scale*10)<0)
+          {objects.splice(i,1);}
+        }
+      }
+
+      function cleanUpLoop()
+      {
+        for(var i=0;i<canvasObjects.length;i++)
+        { 
+           cleanUpOffScreen(canvasObjects[i]);
+        }
+      }
+
+      function updateLoop(delta)
+      {
+        for(var i=0; i < canvasObjects.length; i++)
+        {
+          group = canvasObjects[i];
+          for(var j=0; j < group.length; j++)
           {
-            obj2 = gameObjects[j];
+            group[j].update(delta);
+          }  
+        }
+      }
+
+      function detectCollision(objects)
+      {
+        var obj1;
+        var obj2;
+        
+        for(i=0; i < objects.length;i++)
+        {
+          objects[i].isColliding = false;
+        }
+
+        for(i=0; i < objects.length;i++)
+        {
+          obj1 = objects[i];
+          for(j=i+1; j < objects.length;j++)
+          {
+            obj2 = objects[j];
             var deltaX = obj2.xPos-obj1.xPos;
             var deltaY = obj2.yPos-obj1.yPos;
             var sqDistance= Math.pow(deltaX,2) + Math.pow(deltaY,2);
@@ -223,40 +228,29 @@
           }
         }
       }
-      function detectCollision2()
+      function collisionLoop()
       {
-        var obj1;
-        var obj2;
-        
-        for(i=0; i < this.gameObjects2.length;i++)
+        for(var i=0; i < canvasObjects.length;i++)
         {
-          this.gameObjects2[i].isColliding = false;
+          detectCollision(canvasObjects[i]);
         }
-
-        for(i=0; i < gameObjects2.length;i++)
+      }
+      function clearCanvases()
+      {
+        context.clearRect(0,0,canvas.width, canvas.height);
+        context2.clearRect(0,0,canvas.width, canvas.height);
+        context3.clearRect(0,0,canvas.width, canvas.height);
+        context4.clearRect(0,0,canvas.width, canvas.height);
+      }
+      function drawLoop()
+      {
+        for(var i=0; i < canvasObjects.length; i++)
         {
-          obj1 = gameObjects2[i];
-          for(j=i+1; j < gameObjects2.length;j++)
+          group = canvasObjects[i];
+          for(var j=0; j < group.length; j++)
           {
-            obj2 = gameObjects2[j];
-            var deltaX = obj2.xPos-obj1.xPos;
-            var deltaY = obj2.yPos-obj1.yPos;
-            var sqDistance= Math.pow(deltaX,2) + Math.pow(deltaY,2);
-            if(sqDistance <= (Math.pow(obj1.scale + obj2.scale,2)))
-            {
-              obj1.isColliding=true;
-              obj2.isColliding=true;
-              var vNorm = {x: deltaX/Math.sqrt(sqDistance), y: deltaY/Math.sqrt(sqDistance)};
-              var vRelVel = {x: obj1.xVel-obj2.xVel, y: obj1.yVel-obj2.yVel};
-              var speed = (vRelVel.x * vNorm.x) + (vRelVel.y * vNorm.y);
-              if (speed < 0){break;}
-              var impulse = 2* speed / ((obj1.scale*obj1.density) + (obj2.scale*obj2.density));
-              obj1.xVel -= (impulse*obj2.scale*obj2.density*vNorm.x);
-              obj1.yVel -= (impulse*obj2.scale*obj2.density*vNorm.y);
-              obj2.xVel += (impulse*obj1.scale*obj1.density*vNorm.x);
-              obj2.yVel += (impulse*obj1.scale*obj1.density*vNorm.y);
-            }
-          }
+            group[j].draw();
+          }  
         }
       }
     </script>
