@@ -2,82 +2,72 @@
   <head>
   </head>
   <body>
-    <div style="position:relative">
+    <div id="parent" style="position:relative">
      <canvas id="canvas0" width="1024" height="768" style="border:1px solid lightgrey; background-color:red; position:absolute; left:0px; top:0px; z-index:1;"></canvas>		
-     <canvas id="canvas" width="1024" height="768" style="border:1px solid lightgrey; background-color:transparent; position:absolute; left:0px; top:0px; z-index:9;"></canvas>	
-     <canvas id="canvas2" width="1024" height="768" style="border:1px solid lightgrey; background-color:transparent; position:absolute; left:0px; top:0px; z-index:8;"></canvas>
-     <canvas id="canvas3" width="1024" height="768" style="border:1px solid lightgrey; background-color:transparent; position:absolute; left:0px; top:0px; z-index:7;"></canvas>
-     <canvas id="canvas4" width="1024" height="768" style="border:1px solid lightgrey; background-color:transparent; position:absolute; left:0px; top:0px; z-index:6;"></canvas>
-     <canvas id="canvas5" width="1024" height="768" style="border:1px solid lightgrey; background-color:transparent; position:absolute; left:0px; top:0px; z-index:5;"></canvas>
-     <canvas id="canvas6" width="1024" height="768" style="border:1px solid lightgrey; background-color:transparent; position:absolute; left:0px; top:0px; z-index:4;"></canvas>
-     <canvas id="canvas7" width="1024" height="768" style="border:1px solid lightgrey; background-color:transparent; position:absolute; left:0px; top:0px; z-index:3;"></canvas>
-     <canvas id="canvas8" width="1024" height="768" style="border:1px solid lightgrey; background-color:transparent; position:absolute; left:0px; top:0px; z-index:2;"></canvas>
+     <canvas id="canvas1" width="1024" height="768" style="border:1px solid lightgrey; background-color:transparent; position:absolute; left:0px; top:0px; z-index:2;"></canvas>	
+     <canvas id="canvas2" width="1024" height="768" style="border:1px solid lightgrey; background-color:transparent; position:absolute; left:0px; top:0px; z-index:3;"></canvas>
+     <canvas id="canvas3" width="1024" height="768" style="border:1px solid lightgrey; background-color:transparent; position:absolute; left:0px; top:0px; z-index:4;"></canvas>
+     <canvas id="canvas4" width="1024" height="768" style="border:1px solid lightgrey; background-color:transparent; position:absolute; left:0px; top:0px; z-index:5;"></canvas>
+     <canvas id="canvas5" width="1024" height="768" style="border:1px solid lightgrey; background-color:transparent; position:absolute; left:0px; top:0px; z-index:6;"></canvas>
+     <canvas id="canvas6" width="1024" height="768" style="border:1px solid lightgrey; background-color:transparent; position:absolute; left:0px; top:0px; z-index:7;"></canvas>
+     <canvas id="canvas7" width="1024" height="768" style="border:1px solid lightgrey; background-color:transparent; position:absolute; left:0px; top:0px; z-index:8;"></canvas>
+     <canvas id="canvas8" width="1024" height="768" style="border:1px solid lightgrey; background-color:transparent; position:absolute; left:0px; top:0px; z-index:9;"></canvas>
+     <canvas id="canvas9" width="1024" height="768" style="border:1px solid lightgrey; background-color:transparent; position:absolute; left:0px; top:0px; z-index:10;"></canvas>	
+     <canvas id="canvas10" width="1024" height="768" style="border:1px solid lightgrey; background-color:transparent; position:absolute; left:0px; top:0px; z-index:11;"></canvas>
+     <canvas id="canvas11" width="1024" height="768" style="border:1px solid lightgrey; background-color:transparent; position:absolute; left:0px; top:0px; z-index:12;"></canvas>
+     <canvas id="canvas12" width="1024" height="768" style="border:1px solid lightgrey; background-color:transparent; position:absolute; left:0px; top:0px; z-index:13;"></canvas>
+     <canvas id="canvas13" width="1024" height="768" style="border:1px solid lightgrey; background-color:transparent; position:absolute; left:0px; top:0px; z-index:14;"></canvas>
+     <canvas id="canvas14" width="1024" height="768" style="border:1px solid lightgrey; background-color:transparent; position:absolute; left:0px; top:0px; z-index:15;"></canvas>
+     <canvas id="canvas15" width="1024" height="768" style="border:1px solid lightgrey; background-color:transparent; position:absolute; left:0px; top:0px; z-index:16;"></canvas>
+     <canvas id="canvas16" width="1024" height="768" style="border:1px solid lightgrey; background-color:transparent; position:absolute; left:0px; top:0px; z-index:17;"></canvas>
+     <canvas id="canvas17" width="1024" height="768" style="border:1px solid lightgrey; background-color:transparent; position:absolute; left:0px; top:0px; z-index:18;"></canvas>
     </div>
     <script>
-      var canvas;
-      var canvas2;
-      var canvas3;
-      var canvas4;
-      var canvas5;
-      var canvas6;
-      var canvas7;
-      var canvas8;
-      var context;
-      var context2;
-      var context3;
-      var context4;
-      var context5;
-      var context6;
-      var context7;
-      var context8;
+
+      var numCanvases = 16;
+      var canvasBag = [];
+      var contextBag = [];
       var startTime;
-      var gameObjects = [];
-      var gameObjects2 = [];
-      var gameObjects3 = [];
-      var gameObjects4 = [];
-      var gameObjects5 = [];
-      var gameObjects6 = [];
-      var gameObjects7 = [];
-      var gameObjects8 = [];
-      var canvasObjects = [gameObjects,gameObjects2,gameObjects3,gameObjects4,gameObjects5,gameObjects6,gameObjects7,gameObjects8];
+      var spawnClock = 0;
+      var playerCanvas;
+      var playerContext;
+      var player;
+      var canvasObjects = [];
 
       class GameObject
       {
-        constructor(context, xPos, yPos, xVel, yVel)
+        constructor(context, xPos, yPos, zPos, xVel, yVel, zVel)
         {
           this.context = context;
           this.xPos = xPos;
           this.yPos = yPos; 
+          this.zPos = zPos; 
           this.xVel = xVel;
           this.yVel = yVel;
+          this.zVel = zVel;
           this.isColliding = false;
         }
       }
 
-     class Entity extends GameObject
+      class Entity extends GameObject
       {
-        constructor(context, xPos, yPos, xVel, yVel, scale, density)
+        constructor(context, xPos, yPos, zPos, xVel, yVel, zVel, scale, density)
         {
-          super(context, xPos, yPos, xVel, yVel);
+          super(context, xPos, yPos, zPos, xVel, yVel, zVel);
           this.scale = scale;
           this.density = density;
         }
         draw()
         {
-          if(this.context==context8){this.context.fillStyle = '#CC0000';}
-          if(this.context==context7){this.context.fillStyle = '#BB0000';}
-          if(this.context==context6){this.context.fillStyle = '#AA0000';}
-          if(this.context==context5){this.context.fillStyle = '#990000';}
-          if(this.context==context4){this.context.fillStyle = '#880000';}
-          if(this.context==context3){this.context.fillStyle = '#770000';}
-          if(this.context==context2){this.context.fillStyle = '#660000';}
-          if(this.context==context){this.context.fillStyle = '#110000';}
+          for(var i = 0; i < numCanvases; i++)
+          {
+          var num = 16*i;
+          var color = '#' + num.toString(16) + '0000';
+          if(this.context==contextBag[numCanvases-1-i]){this.context.fillStyle = color;}
+          } 
           this.context.beginPath();
           this.context.arc(this.xPos, this.yPos, this.scale, 0, 2*Math.PI);
           this.context.fill();
-          this.context.font = '10px Arial';
-          this.context.fillStyle = 'black';
-          this.context.fillText(this.scale*this.density, this.xPos, this.yPos);
         }
         update(seconds)
         {
@@ -86,55 +76,113 @@
           this.yVel += 0.1;
           this.xPos += this.xVel*seconds;
           this.yPos += this.yVel*seconds;
+          this.zPos += this.zVel*seconds;
+        }
+      }
+      class Player
+      {
+        constructor(context, xPos, yPos, scale)
+        {
+          this.context=context;
+          this.xPos=xPos;
+          this.yPos=yPos;
+          this.scale=scale;
+        }
+        draw()
+        {
+          this.context.fillStyle = '#00FF00';
+          this.context.beginPath();
+          this.context.arc(this.xPos, this.yPos, this.scale, 0, 2*Math.PI);
+          this.context.fill();          
+        }
+        update()
+        {
+          this.yPos=playerCanvas.height - this.scale; 
+        }
+      } 
+      
+      function makeCanvases(amount)
+      {
+        for(var i=0; i < amount; i++)
+        {
+          var temp;
+          canvasBag[i] = temp;
+        }
+      }
+      function makeContexts(amount)
+      {
+        for(var i=0; i < amount; i++)
+        {
+          var temp;
+          contextBag[i] = temp;
         }
       }
 
-
-
-      function init() //set up canvases and start game loop
+      function linkContexts(amount)
       {
-        canvas = document.getElementById('canvas');
-        context = canvas.getContext('2d');
-        canvas2 = document.getElementById('canvas2');
-        context2 = canvas2.getContext('2d');
-        canvas3 = document.getElementById('canvas3');
-        context3 = canvas3.getContext('2d');
-        canvas4 = document.getElementById('canvas4');
-        context4 = canvas4.getContext('2d');
-        canvas5 = document.getElementById('canvas5');
-        context5 = canvas5.getContext('2d');
-        canvas6 = document.getElementById('canvas6');
-        context6 = canvas6.getContext('2d');
-        canvas7 = document.getElementById('canvas7');
-        context7 = canvas7.getContext('2d');
-        canvas8 = document.getElementById('canvas8');
-        context8 = canvas8.getContext('2d');
+        for(var i=0; i < amount; i++)
+        {
+          var temp = 'canvas' + (i+1).toString();
+          canvasBag[i] = document.getElementById(temp);
+          contextBag[i] = canvasBag[i].getContext('2d');
+        }
+      }
+      function makeLayers(amount)
+      {
+        for(var i=0; i < amount; i++)
+        {
+          var temp = [];
+          canvasObjects.push(temp);
+        }
+      }
+      function init()
+      { 
+        makeCanvases(numCanvases);
+        makeContexts(numCanvases);
+        linkContexts(numCanvases);
+        makeLayers(numCanvases);
+        playerCanvas = document.getElementById('canvas17');
+        playerContext = playerCanvas.getContext('2d');
+        player = new Player(playerContext, (playerCanvas.width)/2, playerCanvas.height - 20, 20);
+        document.addEventListener("mousemove", mouseMoveHandler, false);
         window.requestAnimationFrame(gameLoop);
       }
 
       window.onload = init(); //initialize on window load
 
-      function gameLoop(currentTime) //main game loop
+      function mouseMoveHandler(e)
+      {
+        var relX = e.clientX - playerCanvas.offsetLeft;
+        if(relX > player.scale && relX < playerCanvas.width - player.scale){player.xPos = relX;}
+      }
+      function gameLoop(currentTime)
       {
         var seconds = (currentTime - startTime)/1000;
         var framesPerSec = Math.round(1/seconds);
         startTime = currentTime;
- 
-        spawnerLoop();
-
-        cleanUpLoop();
         
+        cleanUpLoop();
+
+        spawnClock++
+        if(spawnClock==2)
+        {
+          spawnerLoop();
+          spawnClock = 0;
+        }
+        player.update();
         updateLoop(seconds);
 
         collisionLoop();
 
-        clearCanvases();
+        moveInZLoop();
 
+        clearCanvases();
+        player.draw();
         drawLoop();
 
-        context.font = '25px Arial';
-        context.fillStyle = 'black';
-        context.fillText("fps: " + framesPerSec, 10, 30);
+        contextBag[15].font = '25px Arial';
+        contextBag[15].fillStyle = 'black';
+        contextBag[15].fillText("fps: " + framesPerSec, 10, 30);
 
         window.requestAnimationFrame(gameLoop);
       }
@@ -162,34 +210,39 @@
       var spawner = function(objects)
       {
         var randomX = Math.floor(Math.random() * 1024);
-        var randomY = Math.floor(Math.random() * 768);
-        var ranXVel = Math.floor(Math.random() * 200)-100;
+        var randomY = Math.floor((Math.random() * 768)-10);
+        var randomZ;
+        var ranXVel = Math.floor(Math.random() * 250)-125;
         var ranYVel = Math.floor(Math.random() * 200)-100;
+        var ranZVel = Math.random() * 4;
         var ranSize = Math.floor(Math.random() * 90) + 10;
         var ranDensity = Math.floor(Math.random() * 50) + 1;
         var currentContext;
-        if(objects==gameObjects){currentContext = context;}
-        if(objects==gameObjects2){currentContext = context2;}
-        if(objects==gameObjects3){currentContext = context3;}
-        if(objects==gameObjects4){currentContext = context4;}
-        if(objects==gameObjects5){currentContext = context5;}
-        if(objects==gameObjects6){currentContext = context6;}
-        if(objects==gameObjects7){currentContext = context7;}
-        if(objects==gameObjects8){currentContext = context8;}
+        if(objects==canvasObjects[15])
+        {
+          currentContext = contextBag[15]; randomZ = Math.floor(Math.random() * 5 + 100);
+        }
+        else
+        {
+          for(var i=0; i < canvasObjects.length-1;i++)
+          {
+            if(objects==canvasObjects[i])
+            {
+              currentContext = contextBag[i]; randomZ = Math.floor(Math.random() * 5) + ((i+1)*5);
+            }
+          }
+        }
         if(!spawnToCollide(randomX, randomY, ranSize, objects))
         {
-          var spawn = new Entity(currentContext, randomX, randomY, ranXVel, ranYVel, ranSize, ranDensity);
+          var spawn = new Entity(currentContext, randomX, randomY, randomZ, ranXVel, ranYVel, ranZVel, ranSize, ranDensity);
           objects.push(spawn);
         }
       }
 
       function spawnerLoop()
       {
-        for(var i=0;i<canvasObjects.length;i++)
-        {
-          spawner(canvasObjects[i]);
-        }
-
+        var ranCanvas = Math.floor(Math.random() * 5);
+        spawner(canvasObjects[ranCanvas]);
       }
 
       function cleanUpOffScreen(objects)
@@ -197,9 +250,9 @@
         for(i=0; i < objects.length; i++)
         {
           var obj = objects[i];
-          if((obj.xPos-obj.scale*10)>canvas.width||
-             (obj.xPos+obj.scale*10)<0||
-             (obj.yPos-obj.scale*10)>canvas.height||
+          if((obj.xPos-obj.scale)>canvasBag[0].width||
+             (obj.xPos+obj.scale)<0||
+             (obj.yPos-obj.scale)>canvasBag[0].height||
              (obj.yPos+obj.scale*10)<0)
           {objects.splice(i,1);}
         }
@@ -224,7 +277,36 @@
           }  
         }
       }
-
+      function moveInZ(objects)
+      {
+        for(var i = 0; i < objects.length; i++)
+        {               
+          for(var j = 0; j < canvasObjects.length; j++)
+          {
+            if(objects[i].zPos < (j+1)*5 && (j+1)*5 < 80)
+            {
+              objects[i].context = contextBag[j];
+              canvasObjects[j].push(objects[i]);
+              objects.splice(i,1);
+              j = canvasObjects.length;
+            }
+            else if(objects[i].zPos >= 75)
+            {
+              objects[i].context = contextBag[15];
+              canvasObjects[15].push(objects[i]);
+              objects.splice(i,1);
+              j = canvasObjects.length;
+            }
+          }
+        }              
+      }
+      function moveInZLoop()
+      {
+        for(var i=0; i < canvasObjects.length;i++)
+        {
+          moveInZ(canvasObjects[i]);
+        }
+      }
       function detectCollision(objects)
       {
         var obj1;
@@ -270,14 +352,11 @@
       }
       function clearCanvases()
       {
-        context.clearRect(0,0,canvas.width, canvas.height);
-        context2.clearRect(0,0,canvas.width, canvas.height);
-        context3.clearRect(0,0,canvas.width, canvas.height);
-        context4.clearRect(0,0,canvas.width, canvas.height);
-        context5.clearRect(0,0,canvas.width, canvas.height);
-        context6.clearRect(0,0,canvas.width, canvas.height);
-        context7.clearRect(0,0,canvas.width, canvas.height);
-        context8.clearRect(0,0,canvas.width, canvas.height);
+        for(i=0; i < contextBag.length; i++)
+        {
+          contextBag[i].clearRect(0,0,canvasBag[i].width,canvasBag[i].height);
+        }
+        playerContext.clearRect(0,0,playerCanvas.width,playerCanvas.height);
       }
       function drawLoop()
       {
@@ -290,7 +369,7 @@
           }  
         }
       }
-    </script>
+</script>
 		
   </body>
 </html>
