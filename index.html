@@ -2,7 +2,7 @@
   <head>
   </head>
   <body>
-    <div id="parent" style="position:relative">
+    <div id="parent" style="position:relative; cursor:none;">
      <canvas id="canvas0" width="1024" height="768" style="border:1px solid lightgrey; background-color:red; position:absolute; left:0px; top:0px; z-index:1;"></canvas>		
      <canvas id="canvas1" width="1024" height="768" style="border:1px solid lightgrey; background-color:transparent; position:absolute; left:0px; top:0px; z-index:2;"></canvas>	
      <canvas id="canvas2" width="1024" height="768" style="border:1px solid lightgrey; background-color:transparent; position:absolute; left:0px; top:0px; z-index:3;"></canvas>
@@ -145,6 +145,7 @@
         playerContext = playerCanvas.getContext('2d');
         player = new Player(playerContext, (playerCanvas.width)/2, playerCanvas.height - 20, 20);
         document.addEventListener("mousemove", mouseMoveHandler, false);
+        document.addEventListener("click", fire, false);
         window.requestAnimationFrame(gameLoop);
       }
 
@@ -154,6 +155,11 @@
       {
         var relX = e.clientX - playerCanvas.offsetLeft;
         if(relX > player.scale && relX < playerCanvas.width - player.scale){player.xPos = relX;}
+      }
+      function fire()
+      {
+        var spawn = new Entity(contextBag[15], player.xPos, player.yPos-40, 100, 0, -750, 0, 10, 200);
+        canvasObjects[15].push(spawn);
       }
       function gameLoop(currentTime)
       {
