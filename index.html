@@ -5,9 +5,11 @@
     <div id="parent" style="position:relative; cursor:none;"></div>
     <script>
 
+      //TO DO place in separate files. one for objects. one for variables and functions
+      //TO DO add UI layer, player score, player health, weapons loadout
 
       //declaration
-      var numCanvases = 16;    //defines amount of layers
+      var numCanvases = 32;    //defines amount of layers
       var canvasBag = [];      //holds canvas documents
       var contextBag = [];     //holds canvas contexts
       var startTime;           //for determining time elapsed during a frame
@@ -17,7 +19,7 @@
       var playerContext;       //context for player canvas 
       var player;              //player character object
       var canvasObjects = [];  //holds the arrays that hold the objects for each canvas layer
-
+      //TO DO make separate canvas for player weapons
 
       //object types
       class GameObject //anything in the game that can move
@@ -31,7 +33,6 @@
           this.xVel = xVel;
           this.yVel = yVel;
           this.zVel = zVel;
-          this.isColliding = false;
         }
       }
 
@@ -42,12 +43,13 @@
           super(context, xPos, yPos, zPos, xVel, yVel, zVel);
           this.scale = scale;
           this.density = density;
+          this.isColliding = false;
         }
         draw()                         //determines where the object resides and draws it
         {                              //on the appropriate canvas at a corresponding color
           for(var i = 0; i < numCanvases; i++)
           {
-          var num = 16*i;
+          var num = (256/numCanvases)*i;
           var color = '#' + num.toString(16) + '0000';
           if(this.context==contextBag[numCanvases-1-i]){this.context.fillStyle = color;}
           } 
@@ -81,7 +83,7 @@
           this.scale=scale;
           this.angle=0;                          //angle of the player's forward vector in relation to true north 
         }
-        draw()
+        draw()                                                 //TO DO upgrade player appearance
         {
           this.context.save();
           this.context.translate(this.xPos, this.yPos);        //move player canvas to new position
@@ -96,7 +98,7 @@
           this.context.rotate(this.angle);                     //rotate canvas to the player's rotation 
           this.context.fillStyle = '#00FF00';                  //draw main body of player character
           this.context.beginPath();
-          this.context.arc(0, 0, this.scale, 0, 2*Math.PI);
+          this.context.arc(0, 0, this.scale, 0, 2*Math.PI);     
           this.context.fill();
           this.context.restore();          
         }
@@ -117,6 +119,7 @@
       {
         var temp = '';                                         //first canvas tag is a plain red background and no game objects are drawn onto it  
         temp += '<canvas id="canvas0" width="1024" height="768" style="border:1px solid lightgrey; background-color:red; position:absolute; left:0px; top:0px; z-index:1;"></canvas>';
+
         for(var i=0; i < amount; i++)                          //loop to create various layers that the game objects are drawn onto 
         {
           temp += '<canvas id="'
@@ -180,6 +183,7 @@
         playerCanvas = document.getElementById(playerTemp);       //creates player canvas, context, and object
         playerContext = playerCanvas.getContext('2d');
         player = new Player(playerContext, playerCanvas.width/2, playerCanvas.height/2, 0, 0, 20);
+        document.addEventListener('mousedown', mouseDownHandler, false);
         document.addEventListener('keydown', keyDownHandler, false);                               //control input listeners
         document.addEventListener('keyup', keyUpHandler, false);
         window.requestAnimationFrame(gameLoop);                   //initiate recursive game loop
@@ -200,15 +204,12 @@
 
         switch(x)
         { 
-          case 32:                                             //fire missile with space bar
-            fire();
-            break;
           case 37:                                             //rotate player character left relative to player's
             player.angle-=0.1;                                 //forward vector with left arrow
             break; 
           case 38:                                             //move player character in direction of player's
             player.yVel+=0.01*player.firePointY;               //forward vector with up arrow
-            player.xVel+=0.01*player.firePointX;
+            player.xVel+=0.01*player.firePointX;               //TO DO limit MAX speed, constrain player to screen
             break;
           case 39:                                             //rotate player character right relative to player's
             player.angle+=0.1;                                 //forward vector with right arrow
@@ -216,15 +217,15 @@
         }
       }
 
+      function mouseDownHandler()
+      {fire();}
+
       function fire()                                          //dynamically create missle at player's fire point in the direction of player's forward vector
-      {                                                        //when fire timer delay has successfully looped
-        if(fireTimer==10)
-        {
+      {                                                        //when fire timer delay has successfully loop                        //TO DO add new weapons, weapons loadout, and weapon switching
+     
           var spawn = new Entity(contextBag[numCanvases - 1], player.xPos+player.firePointX, player.yPos+player.firePointY, 100, player.firePointX*20, player.firePointY*20, 0, 10, 200);
           canvasObjects[numCanvases - 1].push(spawn);
-          fireTimer=0;
-        }
-        fireTimer++;
+
       }
       function gameLoop(currentTime)                           //everything that occurs in the game during a given frame
       {
@@ -289,9 +290,9 @@
         var ranSize = Math.floor(Math.random() * 90) + 10;
         var ranDensity = Math.floor(Math.random() * 50) + 1;
         var currentContext;
-        if(objects==canvasObjects[15])                        //assigns a Z position based on the context of the objects in the input parameter array
+        if(objects==canvasObjects[numCanvases-1])                        //assigns a Z position based on the context of the objects in the input parameter array
         {
-          currentContext = contextBag[15]; randomZ = Math.floor(Math.random() * 5 + 100);
+          currentContext = contextBag[numCanvases-1]; randomZ = Math.floor(Math.random() * 5 + 100);
         }
         else
         {
@@ -299,7 +300,8 @@
           {
             if(objects==canvasObjects[i])
             {
-              currentContext = contextBag[i]; randomZ = Math.floor(Math.random() * 5) + ((i+1)*5);
+              currentContext = contextBag[i]; 
+              randomZ = Math.floor(Math.random() * (80/numCanvases)) + ((i+1)*(80/numCanvases));
             }
           }
         }
@@ -354,17 +356,17 @@
         {               
           for(var j = 0; j < canvasObjects.length; j++)
           {
-            if(objects[i].zPos < (j+1)*5 && (j+1)*5 < 80)
+            if(objects[i].zPos < (j+1)*(80/numCanvases) && (j+1)*(80/numCanvases) < 80)
             {
               objects[i].context = contextBag[j];
               canvasObjects[j].push(objects[i]);
               objects.splice(i,1);
               j = canvasObjects.length;
             }
-            else if(objects[i].zPos >= 75)
+            else if(objects[i].zPos >= (80 - (80/numCanvases)))
             {
-              objects[i].context = contextBag[15];
-              canvasObjects[15].push(objects[i]);
+              objects[i].context = contextBag[numCanvases-1];
+              canvasObjects[numCanvases-1].push(objects[i]);
               objects.splice(i,1);
               j = canvasObjects.length;
             }
@@ -381,8 +383,8 @@
       function detectCollision(objects)                     //detects collision between all collidable objects in a given canvas layer object array
       {                                                     //input parameter is a canvas layer object array
         var obj1;
-        var obj2;
-        
+        var obj2;                                           //TO DO handle overlapping objects, merging objects, splintering objects, and destroyed objects.
+                                                            //TO DO check collision of game objects with player, implement damage system
         for(i=0; i < objects.length;i++)                    //resets each object's variable that indicates if the object is colliding with something else during a given frame
         {
           objects[i].isColliding = false;
