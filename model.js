@@ -1,1 +1,0 @@
-var model = 0;
