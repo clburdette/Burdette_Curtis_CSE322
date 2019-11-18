@@ -123,6 +123,7 @@ class Player                    //player character object
       this.context.beginPath();
       this.context.arc(0, 0, this.scale, 0, 2*Math.PI);     
       this.context.fill();
+      this.health--;
     }
     this.context.restore();          
   }

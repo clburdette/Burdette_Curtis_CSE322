@@ -1,5 +1,6 @@
+var playArea = {
 
-function makeCanvasTags(amount)                          //create string containing all HTML canvas tags for placement in parent div tag
+makeCanvasTags : function(amount)                          //create string containing all HTML canvas tags for placement in parent div tag
 {
   var temp = '';                                         //first canvas tag is a plain red background and no game objects are drawn onto it  
   temp += '<canvas id="canvas0" width="1024" height="768" style="border:1px solid lightgrey; background-color:red; position:absolute; left:0px; top:0px; z-index:1;"></canvas>';
@@ -14,8 +15,8 @@ function makeCanvasTags(amount)                          //create string contain
 
   document.getElementById("parent").innerHTML = temp;    //last canvas tag is for drawing the player character. After it is added, the string is placed into the parent div
 } 
-      
-function makeCanvases(amount)                            //fills the array, that will hold the canvas documents, with temp variables
+,      
+makeCanvases : function(amount)                            //fills the array, that will hold the canvas documents, with temp variables
 {
   for(var i=0; i < amount; i++)
   {
@@ -23,8 +24,8 @@ function makeCanvases(amount)                            //fills the array, that
     canvasBag[i] = temp;
   }
 }
-
-function makeContexts(amount)                            //fills the array, that will hold the canvas contexts, with temp variables
+,
+makeContexts : function(amount)                            //fills the array, that will hold the canvas contexts, with temp variables
 {
   for(var i=0; i < amount; i++)
   {
@@ -32,8 +33,8 @@ function makeContexts(amount)                            //fills the array, that
     contextBag[i] = temp;
   }
 }
-
-function linkContexts(amount)                            //places canvas documents into the canvasBag array
+,
+linkContexts : function(amount)                            //places canvas documents into the canvasBag array
 {                                                        //so they can be accessed later, gets contexts from
   for(var i=0; i < amount; i++)                          //the canvas documents, and places them into the
   {                                                      //contextBag array so they can be accessed later 
@@ -42,8 +43,8 @@ function linkContexts(amount)                            //places canvas documen
     contextBag[i] = canvasBag[i].getContext('2d');
   }
 }
-
-function makeLayers(amount)                              //fills the array with empty arrays that will be
+,
+makeLayers : function(amount)                              //fills the array with empty arrays that will be
 {                                                        //used to hold dynamically created game objects
   for(var i=0; i < amount; i++)
   {
@@ -51,8 +52,8 @@ function makeLayers(amount)                              //fills the array with 
     canvasObjects.push(temp);
   }
 }
-
-function clearCanvases()                                         //clears last frame's information from each canvas context 
+,
+clearCanvases : function()                                         //clears last frame's information from each canvas context 
 {
   for(i=0; i < contextBag.length; i++)
   {
@@ -60,5 +61,18 @@ function clearCanvases()                                         //clears last f
   }
   weaponsContext.clearRect(0,0,weaponsCanvas.width,weaponsCanvas.height);
   playerContext.clearRect(0,0,playerCanvas.width,playerCanvas.height);
-  uiContext.clearRect(0,0,uiCanvas.width,uiCanvas.height);
+  view.uiContext.clearRect(0,0,view.uiCanvas.width,view.uiCanvas.height);
 }
+,
+makePlayerLayer : function()
+{
+  playerCanvas = document.getElementById("player");         //creates player canvas, context, and object               
+  playerContext = playerCanvas.getContext('2d');
+}
+,
+makeWeaponsLayer : function()
+{
+  weaponsCanvas = document.getElementById("weapons");                                          //creates weapons canvas, context
+  weaponsContext = weaponsCanvas.getContext('2d');
+}
+};

@@ -1,192 +1,128 @@
 //TO DO add UI layer, player score, player health, weapons loadout
 
 //declaration
-var numCanvases = 32;    //defines amount of layers
-var canvasBag = [];      //holds canvas documents
-var contextBag = [];     //holds canvas contexts
-var startTime;           //for determining time elapsed during a frame
-var spawnClock = 0;      //temp variables to keep events
-var spawnRate = 10;
-var fireTimer = 10;      //triggering each frame
-var playerCanvas;        //canvas for player character
-var playerContext;       //context for player canvas 
-var player;              //player character object
-var weaponsCanvas;
-var weaponsContext;
-var weaponsObjects = [];
-var uiCanvas;
-var uiContext;
-var patientHealth = 1000;
-var ticks = 0;
-var secs = 0;
-var secsDisplay;
-var mins = 0;
-var gameOver = false;
-var pressedKeys = {"a":false,"d":false,"s":false, "w":false};
+var numCanvases = 32;      //defines amount of layers among play area objects
+var canvasBag = [];        //holds canvas documents
+var contextBag = [];       //holds canvas contexts
+var startTime;             //for determining time elapsed during a frame
+var spawnClock = 0;        //temp variables to keep objects from spawning
+var spawnRate = 10;        //every frame, also increase difficulty
+var playerCanvas;          //canvas for player character
+var playerContext;         //context for player canvas 
+var player;                //player character object
+var weaponsCanvas;         //canvas for drawing various objects "fired" by the player
+var weaponsContext;        //context for that canvas
+var playerObjects = [];    //array that hold player and all player-fired objects
+var patientHealth = 1000;  //health score metric for display
+var randomizer;            //variable for randomizing various processes
+var pressedKeys = {"a":false,"d":false,"s":false, "w":false};                            //array that holds information about certain key presses
 var canvasObjects = [];  //holds the arrays that hold the objects for each canvas layer
 
-//TODO player scoring system and multiplier
 //TODO add new weapons, weapons loadout?, weapon switching
 //TODO data security, reduce global variables
+//TODO add screen-clear weapon
+//TODO add powerups
+//TODO refactor scoring
+//TODO add sound
+//TODO add visual effects
+//TODO add animation
 
-function init()                                             //creates conditions necessary for building the game
+function init() //game intro screen
+{
+  var introTxt = "";
+  introTxt += "<div style='text-align: center; width: 100%'>";
+  introTxt += "<br><br><u>STORY</u><br><br>";
+  introTxt += "Your patient is infected with a deadly blood disease!<br>";
+  introTxt += "The only way to stop the spread of infection is inserting<br>";
+  introTxt += "a remotely controlled micro-device that you control in<br>";
+  introTxt += " to clean the infected cells from the blood directly<br><br>";
+  introTxt += "<u>RULES</u><br><br>";
+  introTxt += "1) infections bubble up toward the camera. Black blood cells<br>";
+  introTxt += "are about to become infected.  Purple blood cells are infected!<br>";
+  introTxt += "Shoot purple cells with your anti-body weapons. Watch out for<br>";
+  introTxt += "black cells that may turn into purple cells.<br><br>";
+  introTxt += "2) If infected cells float past the bottom of your view, they<br>";
+  introTxt += "spread to the rest of the bloodstream and hurt the health of<br>";
+  introTxt += "your patient.  The bigger the infection, the bigger the hurt.<br>";
+  introTxt += "If your patient's health reaches zero, they die!<br><br>";
+  introTxt += "3) Your micro-device is coated in anti-bodies.  You can ram<br>";
+  introTxt += "infected cells with your micro-device to destroy them.  However,<br>";
+  introTxt += "each collision weakens your micro-device's hull integrity.  If it<br>";
+  introTxt += "reaches zero, your micro-device is destroyed and your patient dies!<br><br>";
+  introTxt += "<u>CONTROLS</u><br><br>";
+  introTxt += "W - Move Forward<br>";
+  introTxt += "S - Move Back<br>";
+  introTxt += "A - Rotate Left<br>";
+  introTxt += "D - Rotate Right<br>";
+  introTxt += "Left Click - fire<br>";
+  introTxt += "keep your mouse in the play area!<br><br>";
+  introTxt += "</div><br>";
+  introTxt += "<div id='tempStart' style='text-align: center; width: 15%; background-color: red; margin: auto;'>click here to start</div>";
+  document.getElementById("parent").innerHTML = introTxt;
+  document.getElementById("tempStart").addEventListener('click', initGame, false);
+}
+  
+function initGame()                                         //creates conditions necessary for building the game
 {                                                              
-  makeCanvasTags(numCanvases);                              //makes all the canvases and arrays to hold canvas drawn  
-  makeCanvases(numCanvases);                                //objects based on an amount which is a power of 2
-  makeContexts(numCanvases);                                //wip, currently only works when this amount is 16
-  linkContexts(numCanvases);                                //due to some hard coding and magic numbers
-  makeLayers(numCanvases);
-  playerCanvas = document.getElementById("player");         //creates player canvas, context, and object
-  playerContext = playerCanvas.getContext('2d');
-  player = new Player(playerContext, playerCanvas.width/2, playerCanvas.height/2, 0, 0, 20, 10000, 1000);
-  weaponsCanvas = document.getElementById("weapons");       //creates player canvas, context, and object
-  weaponsContext = weaponsCanvas.getContext('2d');
-  uiCanvas = document.getElementById("UI");                 //creates player canvas, context, and object
-  uiContext = uiCanvas.getContext('2d');
-  document.addEventListener('mousedown', mouseDownHandler, false);
-  document.addEventListener('keydown', keyDownHandler, false);                               //control input listeners
+  playArea.makeCanvasTags(numCanvases);                              //makes all the canvases and arrays to hold canvas drawn  
+  playArea.makeCanvases(numCanvases);                                //objects based on an amount which is a power of 2
+  playArea.makeContexts(numCanvases);                                //due to the way color transitions are handled
+  playArea.linkContexts(numCanvases);                                
+  playArea.makeLayers(numCanvases);                                  //TODO refactor player, weapons, ui canvas creation
+  playArea.makePlayerLayer();
+  playArea.makeWeaponsLayer();
+  view.makeUILayer();
+  player = new Player(playerContext, playerCanvas.width/2, playerCanvas.height/2, 0, 0, 20, 10000, 100);
+  playerObjects.push(player);
+  document.getElementById("parent").removeEventListener('click', initGame, false);
+  document.getElementById("parent").style.cursor = "none";
+  document.getElementById("parent").addEventListener('mousedown', mouseDownHandler, false);
+  document.addEventListener('keydown', keyDownHandler, false);                            //control input listeners
   document.addEventListener('keyup', keyUpHandler, false);
-  window.requestAnimationFrame(gameLoop);                   //initiate recursive game loop
+  window.requestAnimationFrame(gameLoop);                                                      //initiate recursive game loop
 }
 
-function keyUpHandler(e)                                 //manually tracks when certain keys are not pressed
-{                                                        
-  if(e.key == "a")
-  {
-    pressedKeys["a"] = false;
-  }
-  else if(e.key == "d")
-  {
-    pressedKeys["d"] = false;
-  }
-  else if(e.key == "s")
-  {
-    pressedKeys["s"] = false;
-  }
-  else if(e.key == "w")
-  {
-    pressedKeys["w"] = false;
-  }
+function fire()                                           //dynamically create missile at player's fire point in the direction of player's forward vector
+{                                                                                 
+  var spawn = new Weapon(weaponsContext, player.xPos+player.firePointX, player.yPos+player.firePointY, player.firePointX*25, player.firePointY*25, 10, 2);
+  playerObjects.push(spawn);
 }
 
-function keyDownHandler(e)                               //manually tracks when special keys are pressed
-{                                                        
-  if(e.key == "a")
-  {
-    pressedKeys["a"] = true;
-  }
-  else if(e.key == "d")
-  {
-    pressedKeys["d"] = true;
-  }
-  else if(e.key == "s")
-  {
-    pressedKeys["s"] = true;
-  }
-  else if(e.key == "w")
-  {
-    pressedKeys["w"] = true;
-  }                                                    
-}
-
-function handleInput()
+function gameLoop(currentTime)                            //everything that occurs in the game during a given frame
 {
-  if(pressedKeys["a"]&&pressedKeys["d"]&&pressedKeys["w"])
-  {
-      player.yVel+=0.01*player.firePointY;              //forward vector with w button
-      player.xVel+=0.01*player.firePointX;    
-  }
-  else if(pressedKeys["a"]&&pressedKeys["w"])           //rotate player character left relative to player's
-  {
-    player.angle-=0.05;
-    player.yVel+=0.01*player.firePointY;                //forward vector with w button
-    player.xVel+=0.01*player.firePointX;
-  }                                 //forward vector with a button
-  else if(pressedKeys["d"]&&pressedKeys["w"])           //rotate player character left relative to player's
-  {
-    player.angle+=0.05;
-    player.yVel+=0.01*player.firePointY;                //forward vector with w button
-    player.xVel+=0.01*player.firePointX;
-  }
-  else if(pressedKeys["a"]&&pressedKeys["s"])           //rotate player character left relative to player's
-  {
-    player.angle-=0.02;
-    player.yVel-=0.001*player.firePointY;                //forward vector with w button
-    player.xVel-=0.001*player.firePointX;
-  }                                 //forward vector with a button
-  else if(pressedKeys["d"]&&pressedKeys["s"])           //rotate player character left relative to player's
-  {
-    player.angle+=0.02;
-    player.yVel-=0.001*player.firePointY;                //forward vector with w button
-    player.xVel-=0.001*player.firePointX;
-  }                                                       //move player character in direction of player's
-  else if(pressedKeys["a"])
-  {
-    player.angle-=0.1;
-  }
-  else if(pressedKeys["d"])
-  {
-    player.angle+=0.1;
-  }
-  else if(pressedKeys["s"])
-  {
-    player.yVel-=0.001*player.firePointY;                //forward vector with w button
-    player.xVel-=0.001*player.firePointX;               
-  }
-  else if(pressedKeys["w"])
-  {
-    player.yVel+=0.01*player.firePointY;                //forward vector with w button
-    player.xVel+=0.01*player.firePointX;               
-  }
-}
-
-function mouseDownHandler(){fire();}
-
-function fire()                                         //dynamically create missile at player's fire point in the direction of player's forward vector
-{                                                       //when fire timer delay has successfully loop                        
-   
-  var spawn = new Weapon(weaponsContext, player.xPos+player.firePointX, player.yPos+player.firePointY, player.firePointX*25, player.firePointY*25, 10, 200);
-  weaponsObjects.push(spawn);
-
-}
-
-function gameLoop(currentTime)                          //everything that occurs in the game during a given frame
-{
-  var seconds = (currentTime - startTime)/1000;         //calculates the amount of time that has elapsed during a frame
-  var framesPerSec = Math.round(1/seconds);
+  var seconds = (currentTime - startTime)/1000;           //calculates the amount of time that has elapsed during a frame
+  var framesPerSec = Math.round(1/seconds);               //TODO refactor into function
   startTime = currentTime;
 
-  cleanUpWeapons();
+  randomizer = Math.random() - 0.5;                       //creates a random number between -0.5 and 0.5 to randomize various processes
+                                                          //TODO refactor into function  
+  cleanUpWeapons();                                       //removes fired objects from array for garbage collection when off screen
         
-  cleanUpLoop();
+  cleanUpLoop();                                          //removes non-player objects from their arrays for gabage collection when off screen 
 
-  spawnClock++                                          //temporary spawner delay
-  if(spawnClock==spawnRate)                              
+  spawnClock++                                            //temporary spawner delay that decreases the long the game is played to increase difficulty
+  if(spawnClock==spawnRate)                               
   {
-    spawnerLoop();                                      //loop that creates various game objects that are not the player
-    spawnClock = 0;                                     //nor a player missile
+    spawnerLoop();                                        //loop that creates various game objects that are not the player
+    spawnClock = 0;                                       //nor a player missile
   }
-  handleInput();
+  handleInput();                                          //process various buttons presses occuring during the frame
 
-  updateLoop(seconds);                                  //update of all other game objects
+  updateLoop(seconds);                                    //update of all game objects
 
-  playerCollision(canvasObjects[numCanvases-1]);        //TODO refactor into collision loop function
+  playerCollision(canvasObjects[numCanvases-1]);          //collision between player and player-fired objects and objects in the top layer of game objects
+                                                          //TODO refactor collision process        
+  collisionLoop();                                        //collision calculations among all collidable game objects that arent player or player weapons
 
-  weaponsCollision(canvasObjects[numCanvases-1]);       //TODO refactor collision process
-         
-  collisionLoop();                                      //collision calculations among all collidable game objects that arent player or player weapons
+  moveInZLoop();                                          //moves objects between canvas layers based on their z value
 
-  moveInZLoop();                                        //moves objects between canvas layers
+  playArea.clearCanvases();                                        //removes last frame's information from the various canvases
 
-  clearCanvases();                                      //removes last frame's information from the various canvases
+  drawLoop();                                             //draws this frame's information to the various canvases
 
-  drawLoop();                                           //draws this frame's non-player information to the various other canvases
-
-  checkEndGame();
-
-  updateUI();
+  view.updateUI();                                             //calculates UI information and displays it in the UI canvas layer
  
-  window.requestAnimationFrame(gameLoop);               //game loop function recursion
+  window.requestAnimationFrame(gameLoop);                 //game loop function recursion
 }
 
 function spawnToCollide(spawnXPos,spawnYPos,sizeToSpawn,objects)  //checks to see if new object will collide with existing objects in a given canvas layer
@@ -198,11 +134,14 @@ function spawnToCollide(spawnXPos,spawnYPos,sizeToSpawn,objects)  //checks to se
   for(i=0; i < objects.length;i++)
   {
     obj1 = objects[i];
-    var diffX = spawnXPos-obj1.xPos;
-    var diffY = spawnYPos-obj1.yPos;
-    var sqDistance= Math.pow(diffX,2) + Math.pow(diffY,2);
+    if(Math.abs(spawnXPos-obj1.xPos)<=(sizeToSpawn + obj1.scale))
+    {
+      var diffX = spawnXPos-obj1.xPos;
+      var diffY = spawnYPos-obj1.yPos;
+      var sqDistance= Math.pow(diffX,2) + Math.pow(diffY,2);
 
-    if(sqDistance <= Math.pow(obj1.scale + sizeToSpawn,2)){willCollide = true;}
+      if(sqDistance <= Math.pow(obj1.scale + sizeToSpawn,2)){willCollide = true;}
+    }
   }
 
   return willCollide;
@@ -212,31 +151,32 @@ function spawner(objects)                               //dynamically spawns obj
 {                                                       //input parameter is an array of objects in a given layer, to which the spawned
   var randomX = Math.floor(Math.random() * 1024);       //object is added
   var randomY = Math.floor((Math.random() * 768)-10);
-  var randomZ;
-  var ranXVel = Math.floor(Math.random() * 250)-125;
-  var ranYVel = Math.floor(Math.random() * 200)-110;
-  var ranZVel = Math.random() * 4;
   var ranSize = Math.floor(Math.random() * 90) + 10;
-  var ranDensity = Math.floor(Math.random() * 50) + 1;
-  var currentContext;
 
-  if(objects==canvasObjects[numCanvases-1])             //assigns a Z position based on the context of the objects in the input parameter array
-  {
-    currentContext = contextBag[numCanvases-1]; randomZ = Math.floor(Math.random() * 5 + 100);
-  }
-  else
-  {
-    for(var i=0; i < canvasObjects.length-1;i++)
-    {
-      if(objects==canvasObjects[i])
-      {
-        currentContext = contextBag[i]; 
-        randomZ = Math.floor(Math.random() * (80/numCanvases)) + ((i+1)*(80/numCanvases));
-      }
-    }
-  }
   if(!spawnToCollide(randomX, randomY, ranSize, objects))
   {
+    var randomZ;
+    var ranXVel = Math.floor(Math.random() * 300)-150;
+    var ranYVel = Math.floor(Math.random() * 200)-110;
+    var ranZVel = Math.random() * 5;
+    var ranDensity = Math.floor(Math.random() * 50) + 1;
+    var currentContext;
+
+    if(objects==canvasObjects[numCanvases-1])             //assigns a Z position based on the context of the objects in the input parameter array
+    {
+      currentContext = contextBag[numCanvases-1]; randomZ = Math.floor(Math.random() * 5 + 100);
+    }
+    else
+    {
+      for(var i=0; i < canvasObjects.length-1;i++)
+      {
+        if(objects==canvasObjects[i])
+        {
+          currentContext = contextBag[i]; 
+          randomZ = Math.floor(Math.random() * (80/numCanvases)) + ((i+1)*(80/numCanvases));
+        }
+      }
+    }
     var spawn = new Entity(currentContext, randomX, randomY, randomZ, ranXVel, ranYVel, ranZVel, ranSize, ranDensity);
     objects.push(spawn);
   }
@@ -258,9 +198,10 @@ function cleanUpOffScreen(objects)                     //checks if objects have 
        (obj.yPos-obj.scale)>canvasBag[0].height||
        (obj.yPos+obj.scale*10)<0)
     {
-      if((obj.yPos-obj.scale)>canvasBag[0].height&&objects==canvasObjects[numCanvases-1])
+      if((obj.yPos-obj.scale)>canvasBag[0].height && objects==canvasObjects[numCanvases-1])
       {
         patientHealth -= obj.scale;
+        view.resetMultiplier();
       }
       objects.splice(i,1);
     }
@@ -269,14 +210,17 @@ function cleanUpOffScreen(objects)                     //checks if objects have 
 
 function cleanUpWeapons()                              
 {                                                      
-  for(i=0; i < weaponsObjects.length; i++)                    
+  for(i=1; i < playerObjects.length; i++)                    
   {
-    var obj = weaponsObjects[i];
+    var obj = playerObjects[i];
     if((obj.xPos-100)>weaponsCanvas.width||
        (obj.xPos+100)<0||
        (obj.yPos-100)>weaponsCanvas.height||
        (obj.yPos+100)<0)
-    {weaponsObjects.splice(i,1);}
+    {
+      playerObjects.splice(i,1);
+      view.resetMultiplier();
+    }
   }
 }
 
@@ -290,16 +234,14 @@ function cleanUpLoop()                                 //sends each canvas layer
 
 function updateLoop(delta)                             //input parameter is amount of time which has passed during a given frame
 {                                                      //which is then passed into the update function of each object in the game
-  player.update(delta);
-
-  for(var i=0; i < weaponsObjects.length; i++)         //TODO update comments for this section
+  for(var i=0; i < playerObjects.length; i++)         //TODO update comments for this section
   {
-    weaponsObjects[i].update(delta);
+    playerObjects[i].update(delta);
   }  
 
   for(var i=0; i < canvasObjects.length; i++)          
   {
-    group = canvasObjects[i];
+    var group = canvasObjects[i];
     for(var j=0; j < group.length; j++)
     {
       group[j].update(delta);
@@ -344,9 +286,7 @@ function moveInZLoop()                                //sends all of the canvas 
 
 function detectCollision(objects)                     //detects collision between all collidable objects in a given canvas layer object array
 {                                                     //input parameter is a canvas layer object array
-  var obj1;
-  var obj2;                                           //TO DO handle overlapping objects, merging objects, splintering objects, and destroyed objects.
-                                                      
+                                                                                                         
   for(i=0; i < objects.length;i++)                    //resets each object's variable that indicates if the object is colliding with something else during a given frame
   {
     objects[i].isColliding = false;
@@ -354,107 +294,160 @@ function detectCollision(objects)                     //detects collision betwee
 
   for(i=0; i < objects.length;i++)                    //compares each object with every other object in the canvas layer object array
   {
-    obj1 = objects[i];
+
     for(j=i+1; j < objects.length;j++)
     {
-      obj2 = objects[j];
-      var deltaX = obj2.xPos-obj1.xPos;
-      var deltaY = obj2.yPos-obj1.yPos;
-      var sqDistance= Math.pow(deltaX,2) + Math.pow(deltaY,2);
-      if(sqDistance <= (Math.pow(obj1.scale + obj2.scale,2)))    //checks to see if the distance between two objects is less than equal to their combined radii
-      {                                                          //thereby indicating a collision.
-        obj1.isColliding=true;                                   //makes various physics calculations based on the parameters on the two objects in the collision
-        obj2.isColliding=true;                                   //TO DO move into a function  
-        var vNorm = {x: deltaX/Math.sqrt(sqDistance), y: deltaY/Math.sqrt(sqDistance)};
-        var vRelVel = {x: obj1.xVel-obj2.xVel, y: obj1.yVel-obj2.yVel};
-        var speed = (vRelVel.x * vNorm.x) + (vRelVel.y * vNorm.y);
-        if (speed < 0){break;}
-        var impulse = 2* speed / ((obj1.scale*obj1.density) + (obj2.scale*obj2.density));
-        obj1.xVel -= (impulse*obj2.scale*obj2.density*vNorm.x);
-        obj1.yVel -= (impulse*obj2.scale*obj2.density*vNorm.y);
-        obj2.xVel += (impulse*obj1.scale*obj1.density*vNorm.x);
-        obj2.yVel += (impulse*obj1.scale*obj1.density*vNorm.y);
+      if((Math.abs(objects[i].xPos-objects[j].xPos)) <= (objects[i].scale + objects[j].scale))
+      {
+        collisionReaction(objects,i,j);
       }
     }
   }
 }
 
-function playerCollision(objects)                     //detects collision between player and top layer objects
-{
-  var obj1;                                            
-  player.isColliding = false                          //TO DO handle overlapping objects, merging objects, splintering objects, and destroyed objects.
-                                                      
-  for(i=0; i < objects.length;i++)                    //resets each object's variable that indicates if the object is colliding with something else during a given frame
-  {
-    objects[i].isColliding = false;
-  }
-
-  for(i=0; i < objects.length;i++)                    //compares each object with player
-  {
-    obj1 = objects[i];
-    var deltaX = player.xPos-obj1.xPos;
-    var deltaY = player.yPos-obj1.yPos;
-    var sqDistance= Math.pow(deltaX,2) + Math.pow(deltaY,2);
-    if(sqDistance <= (Math.pow(obj1.scale + player.scale,2)))  //checks to see if the distance between two objects is less than equal to their combined radii
-    {                                                          //thereby indicating a collision.
-      obj1.isColliding=true;                                   //makes various physics calculations based on the parameters on the two objects in the collision
-      player.isColliding=true;
-      if(player.health>0){player.health-=1;}                   //TO DO move into a function  
-      var vNorm = {x: deltaX/Math.sqrt(sqDistance), y: deltaY/Math.sqrt(sqDistance)};
-      var vRelVel = {x: obj1.xVel-player.xVel, y: obj1.yVel-player.yVel};
-      var speed = (vRelVel.x * vNorm.x) + (vRelVel.y * vNorm.y);
-      if (speed < 0){break;}
-      var impulse = 2* speed / ((obj1.scale*obj1.density) + (player.scale*player.density));
-      obj1.xVel -= (impulse*player.scale*player.density*vNorm.x);
-      obj1.yVel -= (impulse*player.scale*player.density*vNorm.y);
-      player.xVel += (impulse*obj1.scale*obj1.density*vNorm.x);
-      player.yVel += (impulse*obj1.scale*obj1.density*vNorm.y);
-    }
-  }
-}
-
-function weaponsCollision(objects)                     //detects collision between player and top layer objects
+function playerCollision(objects)                      //detects collision between player and player projectiles with top layer objects
 {
   var obj1;
   var obj2;
                                             
-  for(i=0; i < weaponsObjects.length;i++)              //resets each object's variable that indicates if the object is colliding with something else during a given frame
+  for(i=0; i < playerObjects.length;i++)               //resets each object's variable that indicates if the object is colliding with something else during a given frame
   {
-    weaponsObjects[i].isColliding = false;
+    playerObjects[i].isColliding = false;
   }
                                                    
-  for(i=0; i < objects.length;i++)                     //resets each object's variable that indicates if the object is colliding with something else during a given frame
+  for(i=0; i < objects.length;i++)                     
   {
     objects[i].isColliding = false;
   }
 
-  for(i=0; i < weaponsObjects.length; i++)
+  for(i=0; i < playerObjects.length; i++)
   {
-    obj1 = weaponsObjects[i];
-    for(j=0; j < objects.length;j++)                   //compares each object with player
+    obj1 = playerObjects[i];
+    for(j=0; j < objects.length;j++)                   //compares each object with player and/or player projectiles
     {
       obj2 = objects[j];
-      var deltaX = obj2.xPos-obj1.xPos;
-      var deltaY = obj2.yPos-obj1.yPos;
-      var sqDistance= Math.pow(deltaX,2) + Math.pow(deltaY,2);
-      if(sqDistance <= (Math.pow(obj1.scale + obj2.scale,2)))    //checks to see if the distance between two objects is less than equal to their combined radii
-      {                                                          //thereby indicating a collision.
-        obj1.isColliding=true;                                   //makes various physics calculations based on the parameters on the two objects in the collision
-        obj2.isColliding=true;                                   //TO DO move into a function  
-        var vNorm = {x: deltaX/Math.sqrt(sqDistance), y: deltaY/Math.sqrt(sqDistance)};
-        var vRelVel = {x: obj1.xVel-obj2.xVel, y: obj1.yVel-obj2.yVel};
-        var speed = (vRelVel.x * vNorm.x) + (vRelVel.y * vNorm.y);
-        if (speed < 0){break;}
-        var impulse = 2* speed / ((obj1.scale*obj1.density) + (obj2.scale*obj2.density));
-        obj1.xVel -= (impulse*obj2.scale*obj2.density*vNorm.x);
-        obj1.yVel -= (impulse*obj2.scale*obj2.density*vNorm.y);
-        obj2.xVel += (impulse*obj1.scale*obj1.density*vNorm.x);
-        obj2.yVel += (impulse*obj1.scale*obj1.density*vNorm.y);
+      if((Math.abs(obj1.xPos-obj2.xPos)) <= (obj1.scale + obj2.scale))
+      {
+        var deltaX = obj2.xPos-obj1.xPos;
+        var deltaY = obj2.yPos-obj1.yPos;
+        var sqDistance= Math.pow(deltaX,2) + Math.pow(deltaY,2);
+        if(sqDistance <= (Math.pow(obj1.scale + obj2.scale,2)))    //checks to see if the distance between two objects is less than equal to their combined radii
+        {                                                          //thereby indicating a collision.
+          obj1.isColliding=true;                                   //makes various physics calculations based on the parameters on the two objects in the collision
+          obj2.isColliding=true;                                   //TO DO move into a function  
+          var vNorm = {x: deltaX/Math.sqrt(sqDistance), y: deltaY/Math.sqrt(sqDistance)};
+          var vRelVel = {x: obj1.xVel-obj2.xVel, y: obj1.yVel-obj2.yVel};
+          var speed = (vRelVel.x * vNorm.x) + (vRelVel.y * vNorm.y);
+          if (speed < 0){speed = 0;}
+          var impulse = 2* speed / ((obj1.scale*obj1.density) + (obj2.scale*obj2.density));
+          obj1.xVel -= (impulse*obj2.scale*obj2.density*vNorm.x);
+          obj1.yVel -= (impulse*obj2.scale*obj2.density*vNorm.y);
+          obj2.xVel += (impulse*obj1.scale*obj1.density*vNorm.x);
+          obj2.yVel += (impulse*obj1.scale*obj1.density*vNorm.y);
+          if(!endGame()){view.playerScore += Math.ceil(1000/obj2.scale) * view.multiplier;}
+          obj2.scale-=obj1.scale;
+          if(sqDistance/(Math.pow(obj1.scale + obj2.scale,2)) < 0.9)
+          {
+            var midPoint = {x: (obj2.xPos+obj1.xPos)/2, y: (obj2.yPos+obj1.yPos)/2};
+            var distOne = Math.pow((midPoint.x - obj1.xPos),2) + Math.pow((midPoint.y - obj1.yPos),2);
+            var distTwo = Math.pow((midPoint.x - obj2.xPos),2) + Math.pow((midPoint.y - obj2.yPos),2);
+            var vecOne = {x: (obj1.xPos - midPoint.x)/distOne, y: (obj1.yPos - midPoint.y)/distOne};
+            var vecTwo = {x: (obj2.xPos - midPoint.x)/distOne, y: (obj2.yPos - midPoint.y)/distOne};
+            obj1.xVel += (vecOne.x/obj1.scale)*1000;
+            obj1.yVel += (vecOne.y/obj1.scale)*1000;
+            obj2.xVel += (vecTwo.x/obj2.scale)*1000;
+            obj2.yVel += (vecTwo.y/obj2.scale)*1000;
+          }
+          if(i>0)
+          {
+            view.multiplier++;
+            playerObjects.splice(i,1);
+            if(obj2.scale > 60)
+            {
+              var randomizeXPos = ((Math.random() * obj2.scale * Math.sqrt(2)) - obj2.scale/Math.sqrt(2)) * randomizer;
+              var randomizeYPos = ((Math.random() * obj2.scale * Math.sqrt(2)) - obj2.scale/Math.sqrt(2)) * randomizer;
+              var randomizeXVel = ((Math.random() * obj2.scale * Math.sqrt(2)) - obj2.scale/Math.sqrt(2)) * randomizer;
+              var randomizeYVel = ((Math.random() * obj2.scale * Math.sqrt(2)) - obj2.scale/Math.sqrt(2)) * randomizer;
+              var spawn = new Entity(obj2.context, (obj2.xPos)+randomizeXPos, (obj2.yPos)+randomizeYPos, obj2.zPos, (obj2.xVel)+randomizeXVel, (obj2.yVel)+randomizeYVel, obj2.zVel, Math.ceil((obj2.scale)/Math.sqrt(2)), obj2.density);
+              obj2.scale = Math.ceil(obj2.scale/Math.sqrt(2));
+              objects.push(spawn);
+            }
+          }
+          else{view.resetMultiplier()};        
+          if(obj2.scale<10){objects.splice(j,1);}
+        }
       }
     }
   }
 }
+function collisionReaction(objs,i,j) //TODO update comments
+{
+      var obj1 = objs[i];
+      var obj2 = objs[j];
+      var deltaX = obj2.xPos-obj1.xPos;
+      if(deltaX <= obj1.scale + obj2.scale)
+      var deltaY = obj2.yPos-obj1.yPos;
+      var sqDistance= Math.pow(deltaX,2) + Math.pow(deltaY,2);
+      var overlap = sqDistance/(Math.pow(obj1.scale + obj2.scale,2));
+      if(overlap <= 1)    //checks to see if the distance between two objects is less than equal to their combined radii
+      {                                                          //thereby indicating a collision.
+        obj1.isColliding=true;                                   //makes various physics calculations based on the parameters on the two objects in the collision
+        obj2.isColliding=true;                                   //TO DO move into a function
+        var midPoint = {x: (obj2.xPos+obj1.xPos)/2, y: (obj2.yPos+obj1.yPos)/2};
+        if((obj1.scale + obj2.scale) < 70 && overlap < 0.98)
+        {
+          var o1Mass = obj1.scale*obj1.scale*obj1.density;
+          var o2Mass = obj2.scale*obj2.scale*obj2.density;
+          var o1Force = {x: obj1.xVel*o1Mass, y: obj1.yVel*o1Mass};
+          var o2Force = {x: obj2.xVel*o2Mass, y: obj2.yVel*o2Mass};
+          var o3Vel = {x: (o1Force.x + o2Force.x)/(o1Mass + o2Mass), y: (o1Force.y + o2Force.y)/(o1Mass + o2Mass)}; 
+          var spawn = new Entity(obj1.context, midPoint.x, midPoint.y, (obj1.zPos + obj2.zPos)/2, o3Vel.x, o3Vel.y, (obj1.zVel + obj2.zVel)/2, Math.ceil((obj1.scale + obj2.scale)/Math.sqrt(2)),
+                                ((((Math.pow(obj1.scale,2) * obj1.density) + (Math.pow(obj2.scale,2) * obj2.density))) / (Math.pow(obj1.scale + obj2.scale,2))));
+          if(i<j)
+          {
+            objs.splice(j,1);
+            objs.splice(i,1);
+          }
+          else
+          {
+            objs.splice(i,1);
+            objs.splice(j,1);
+          }
+          objs.push(spawn);
+        }
+        else
+        {
+          if(overlap > 0.95)
+          {
+            collisionPhys(deltaX, deltaY, sqDistance, obj1, obj2); 
+          }
+          else if(overlap <=0.95)
+          {
+            var distOne = Math.pow((midPoint.x - obj1.xPos),2) + Math.pow((midPoint.y - obj1.yPos),2);
+            var distTwo = Math.pow((midPoint.x - obj2.xPos),2) + Math.pow((midPoint.y - obj2.yPos),2);
+            var vecOne = {x: (obj1.xPos - midPoint.x)/distOne, y: (obj1.yPos - midPoint.y)/distOne};
+            var vecTwo = {x: (obj2.xPos - midPoint.x)/distOne, y: (obj2.yPos - midPoint.y)/distOne};
+            obj1.xVel += (vecOne.x/obj1.scale)*1000;
+            obj1.yVel += (vecOne.y/obj1.scale)*1000;
+            obj2.xVel += (vecTwo.x/obj2.scale)*1000;
+            obj2.yVel += (vecTwo.y/obj2.scale)*1000;
+          }        
+        }
+      }
+}
 
+function collisionPhys(dX,dY,sqDist,o1,o2)
+{
+          var vNorm = {x: dX/Math.sqrt(sqDist), y: dY/Math.sqrt(sqDist)};
+          var vRelVel = {x: o1.xVel-o2.xVel, y: o1.yVel-o2.yVel};
+          var speed = (vRelVel.x * vNorm.x) + (vRelVel.y * vNorm.y);
+          if(speed < 0){speed = 0;}
+          var impulse = 2* speed / ((o1.scale*o1.density) + (o2.scale*o2.density));
+          o1.xVel -= (impulse*o2.scale*o2.density*vNorm.x);
+          o1.yVel -= (impulse*o2.scale*o2.density*vNorm.y);
+          o2.xVel += (impulse*o1.scale*o1.density*vNorm.x);
+          o2.yVel += (impulse*o1.scale*o1.density*vNorm.y);
+}
 function collisionLoop()                                         //sends each canvas layer object array into the collision detection function
 {
   for(var i=0; i < canvasObjects.length;i++)
@@ -463,18 +456,16 @@ function collisionLoop()                                         //sends each ca
   }
 }
 
-function drawLoop()                                              //draws every object in the game that is not the player
+function drawLoop()                                             //draws every object in the game
 {
-  player.draw();
-
-  for(var i=0; i < weaponsObjects.length; i++)                   //TODO update comments for this section
+  for(var i=0; i < playerObjects.length; i++)                   
   {
-    weaponsObjects[i].draw();
+    playerObjects[i].draw();
   } 
 
   for(var i=0; i < canvasObjects.length; i++)
   {
-    group = canvasObjects[i];
+    var group = canvasObjects[i];
     for(var j=0; j < group.length; j++)
     {
       group[j].draw();
@@ -482,65 +473,25 @@ function drawLoop()                                              //draws every o
   }
 }
 
-function updateUI()
+function endGame()
 {
-  if(!gameOver){updateTimer();}
+  var gameOver;
 
-  updateUIElements();
-}
-
-function updateTimer()
-{
-  ticks++;                                               //ticks each frame at 60fps
-  if(ticks >= 60)
-  {
-    secs++;
-    ticks = 0;
-  }
-  if(secs >= 60)                                         //TODO stop timer at game lost
-  {
-    mins++;
-    if(spawnRate > 1){spawnRate--;}
-    secs=0;
-  }
-  if(secs >= 10)
-  {
-    secsDisplay = secs.toString();
-  }
-  else
-  {
-    secsDisplay = "0" + secs.toString();
-  }
-}
-
-function checkEndGame()
-{
   if(player.health <= 0)
   {
     player.health = 0;
     gameOver = true;
   }
-  if(patientHealth <= 0)
+  else if(patientHealth <= 0)
   {
     patientHealth = 0;
     gameOver = true;
   }
-}
-
-function updateUIElements()
-{
-  displayUIElement('25px Arial','black','hull: ' + player.health.toString(),10,30);                //hull display
-  displayUIElement('25px Arial','black','time: ' + mins.toString() + ':' + secsDisplay, 450, 30);  //timer display 
-  displayUIElement('25px Arial','black','health: ' + patientHealth.toString(), 875, 30);           //health display
-  if(gameOver)                                                                                     //display game over
-  {
-    displayUIElement('144px Impact','red','YOU LOSE', 256, 400);
+  else
+  { 
+    gameOver = false;
   }
-}
 
-function displayUIElement(font,color,statement,xPos,yPos)
-{
-  uiContext.font = font;        
-  uiContext.fillStyle = color;
-  uiContext.fillText(statement, xPos, yPos);
+  return gameOver;
 }
+  
