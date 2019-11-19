@@ -1,6 +1,8 @@
-function mouseDownHandler(){fire();}
+var controller = {
 
-function keyUpHandler(e)                                    //manually tracks when certain keys are not pressed
+mouseDownHandler : function(){fire();}
+,
+keyUpHandler : function(e)                                    //manually tracks when certain keys are not pressed
 {                                                        
   if(e.key == "a")
   {
@@ -19,8 +21,8 @@ function keyUpHandler(e)                                    //manually tracks wh
     pressedKeys["w"] = false;
   }
 }
-
-function keyDownHandler(e)                                  //manually tracks when certain keys are pressed
+,
+keyDownHandler : function(e)                                  //manually tracks when certain keys are pressed
 {                                                        
   if(e.key == "a")
   {
@@ -39,13 +41,13 @@ function keyDownHandler(e)                                  //manually tracks wh
     pressedKeys["w"] = true;
   }                                                    
 }
-
-function handleInput()                                    //consequences of several multiple-button-press scenarios
+,
+handleInput : function()                                    //consequences of several multiple-button-press scenarios
 {
   if(pressedKeys["a"]&&pressedKeys["d"]&&pressedKeys["w"])  //forward no rotation when a,d,w pressed
   {
-      player.yVel+=0.01*player.firePointY;                
-      player.xVel+=0.01*player.firePointX;    
+    player.yVel+=0.01*player.firePointY;                
+    player.xVel+=0.01*player.firePointX;    
   }
   else if(pressedKeys["a"]&&pressedKeys["w"])             //forward and rotate left when a,w pressed
   {
@@ -90,3 +92,4 @@ function handleInput()                                    //consequences of seve
     player.xVel+=0.01*player.firePointX;               
   }
 }
+};

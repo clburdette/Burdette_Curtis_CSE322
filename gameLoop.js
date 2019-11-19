@@ -1,17 +1,13 @@
 //TO DO add UI layer, player score, player health, weapons loadout
 
 //declaration
-var numCanvases = 32;      //defines amount of layers among play area objects
+var numCanvases = 16;      //defines amount of layers among play area objects
 var canvasBag = [];        //holds canvas documents
 var contextBag = [];       //holds canvas contexts
 var startTime;             //for determining time elapsed during a frame
 var spawnClock = 0;        //temp variables to keep objects from spawning
 var spawnRate = 10;        //every frame, also increase difficulty
-var playerCanvas;          //canvas for player character
-var playerContext;         //context for player canvas 
 var player;                //player character object
-var weaponsCanvas;         //canvas for drawing various objects "fired" by the player
-var weaponsContext;        //context for that canvas
 var playerObjects = [];    //array that hold player and all player-fired objects
 var patientHealth = 1000;  //health score metric for display
 var randomizer;            //variable for randomizing various processes
@@ -72,32 +68,26 @@ function initGame()                                         //creates conditions
   playArea.makePlayerLayer();
   playArea.makeWeaponsLayer();
   view.makeUILayer();
-  player = new Player(playerContext, playerCanvas.width/2, playerCanvas.height/2, 0, 0, 20, 10000, 100);
+  player = new Player(playArea.playerContext, playArea.playerCanvas.width/2, playArea.playerCanvas.height/2, 0, 0, 20, 10000, 100);
   playerObjects.push(player);
   document.getElementById("parent").removeEventListener('click', initGame, false);
   document.getElementById("parent").style.cursor = "none";
-  document.getElementById("parent").addEventListener('mousedown', mouseDownHandler, false);
-  document.addEventListener('keydown', keyDownHandler, false);                            //control input listeners
-  document.addEventListener('keyup', keyUpHandler, false);
+  document.getElementById("parent").addEventListener('mousedown', controller.mouseDownHandler, false);
+  document.addEventListener('keydown', controller.keyDownHandler, false);                            //control input listeners
+  document.addEventListener('keyup', controller.keyUpHandler, false);
   window.requestAnimationFrame(gameLoop);                                                      //initiate recursive game loop
 }
 
 function fire()                                           //dynamically create missile at player's fire point in the direction of player's forward vector
 {                                                                                 
-  var spawn = new Weapon(weaponsContext, player.xPos+player.firePointX, player.yPos+player.firePointY, player.firePointX*25, player.firePointY*25, 10, 2);
+  var spawn = new Projectile(playArea.weaponsContext, player.xPos+player.firePointX, player.yPos+player.firePointY, player.firePointX*25, player.firePointY*25, 10, 2);
   playerObjects.push(spawn);
 }
 
 function gameLoop(currentTime)                            //everything that occurs in the game during a given frame
 {
-  var seconds = (currentTime - startTime)/1000;           //calculates the amount of time that has elapsed during a frame
-  var framesPerSec = Math.round(1/seconds);               //TODO refactor into function
-  startTime = currentTime;
-
   randomizer = Math.random() - 0.5;                       //creates a random number between -0.5 and 0.5 to randomize various processes
-                                                          //TODO refactor into function  
-  cleanUpWeapons();                                       //removes fired objects from array for garbage collection when off screen
-        
+                                                          //TODO refactor into function    
   cleanUpLoop();                                          //removes non-player objects from their arrays for gabage collection when off screen 
 
   spawnClock++                                            //temporary spawner delay that decreases the long the game is played to increase difficulty
@@ -106,11 +96,9 @@ function gameLoop(currentTime)                            //everything that occu
     spawnerLoop();                                        //loop that creates various game objects that are not the player
     spawnClock = 0;                                       //nor a player missile
   }
-  handleInput();                                          //process various buttons presses occuring during the frame
+  controller.handleInput();                               //process various buttons presses occuring during the frame
 
-  updateLoop(seconds);                                    //update of all game objects
-
-  playerCollision(canvasObjects[numCanvases-1]);          //collision between player and player-fired objects and objects in the top layer of game objects
+  updateLoop(getTime(currentTime));                       //update of all game objects
                                                           //TODO refactor collision process        
   collisionLoop();                                        //collision calculations among all collidable game objects that arent player or player weapons
 
@@ -124,6 +112,13 @@ function gameLoop(currentTime)                            //everything that occu
  
   window.requestAnimationFrame(gameLoop);                 //game loop function recursion
 }
+
+function getTime(currentTime)
+{
+  var seconds = (currentTime - startTime)/1000;           //calculates the amount of time that has elapsed during a frame               
+  startTime = currentTime;
+  return seconds;
+}                                //TODO refactor into function
 
 function spawnToCollide(spawnXPos,spawnYPos,sizeToSpawn,objects)  //checks to see if new object will collide with existing objects in a given canvas layer
 {
@@ -213,9 +208,9 @@ function cleanUpWeapons()
   for(i=1; i < playerObjects.length; i++)                    
   {
     var obj = playerObjects[i];
-    if((obj.xPos-100)>weaponsCanvas.width||
+    if((obj.xPos-100)>playArea.weaponsCanvas.width||
        (obj.xPos+100)<0||
-       (obj.yPos-100)>weaponsCanvas.height||
+       (obj.yPos-100)>playArea.weaponsCanvas.height||
        (obj.yPos+100)<0)
     {
       playerObjects.splice(i,1);
@@ -226,6 +221,8 @@ function cleanUpWeapons()
 
 function cleanUpLoop()                                 //sends each canvas layer object array into the clean up function
 {
+  cleanUpWeapons();
+
   for(var i=0;i<canvasObjects.length;i++)
   { 
     cleanUpOffScreen(canvasObjects[i]);
@@ -396,12 +393,12 @@ function collisionReaction(objs,i,j) //TODO update comments
         var midPoint = {x: (obj2.xPos+obj1.xPos)/2, y: (obj2.yPos+obj1.yPos)/2};
         if((obj1.scale + obj2.scale) < 70 && overlap < 0.98)
         {
-          var o1Mass = obj1.scale*obj1.scale*obj1.density;
-          var o2Mass = obj2.scale*obj2.scale*obj2.density;
-          var o1Force = {x: obj1.xVel*o1Mass, y: obj1.yVel*o1Mass};
-          var o2Force = {x: obj2.xVel*o2Mass, y: obj2.yVel*o2Mass};
-          var o3Vel = {x: (o1Force.x + o2Force.x)/(o1Mass + o2Mass), y: (o1Force.y + o2Force.y)/(o1Mass + o2Mass)}; 
-          var spawn = new Entity(obj1.context, midPoint.x, midPoint.y, (obj1.zPos + obj2.zPos)/2, o3Vel.x, o3Vel.y, (obj1.zVel + obj2.zVel)/2, Math.ceil((obj1.scale + obj2.scale)/Math.sqrt(2)),
+          var obj1Mass = obj1.scale*obj1.scale*obj1.density;
+          var obj2Mass = obj2.scale*obj2.scale*obj2.density;
+          var obj1Momen = {x: obj1.xVel*obj1Mass, y: obj1.yVel*obj1Mass};
+          var obj2Momen = {x: obj2.xVel*obj2Mass, y: obj2.yVel*obj2Mass};
+          var obj3Vel = {x: (obj1Momen.x + obj2Momen.x)/(obj1Mass + obj2Mass), y: (obj1Momen.y + obj2Momen.y)/(obj1Mass + obj2Mass)}; 
+          var spawn = new Entity(obj1.context, midPoint.x, midPoint.y, (obj1.zPos + obj2.zPos)/2, obj3Vel.x, obj3Vel.y, (obj1.zVel + obj2.zVel)/2, Math.ceil((obj1.scale + obj2.scale)/Math.sqrt(2)),
                                 ((((Math.pow(obj1.scale,2) * obj1.density) + (Math.pow(obj2.scale,2) * obj2.density))) / (Math.pow(obj1.scale + obj2.scale,2))));
           if(i<j)
           {
@@ -450,6 +447,8 @@ function collisionPhys(dX,dY,sqDist,o1,o2)
 }
 function collisionLoop()                                         //sends each canvas layer object array into the collision detection function
 {
+  playerCollision(canvasObjects[numCanvases-1]);
+
   for(var i=0; i < canvasObjects.length;i++)
   {
     detectCollision(canvasObjects[i]);

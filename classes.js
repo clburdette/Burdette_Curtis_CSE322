@@ -50,7 +50,7 @@ class Entity extends GameObject  //anything in the game that collides
   }
 }
 
-class Weapon
+class Projectile
 {
 
   constructor(context, xPos, yPos, xVel, yVel, scale, density)
