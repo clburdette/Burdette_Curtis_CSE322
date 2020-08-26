@@ -1,4 +1,4 @@
-
+//TODO fix setters and getters
 class GameObject //anything in the game that can move
 {
   constructor(context, xPos, yPos, zPos, xVel, yVel, zVel)
@@ -27,13 +27,22 @@ class Entity extends GameObject  //anything in the game that collides
 
   draw()                         //determines where the object resides and draws it
   {                              //on the appropriate canvas at a corresponding color
-    for(var i = 0; i < numCanvases; i++)
+    if(this.context==contextBag[numCanvases-1])
     {
-      var num = (256/numCanvases)*i;
-      var color = '#' + num.toString(16) + '0000';
-      if(this.context==contextBag[numCanvases-1-i]){this.context.fillStyle = color;}
+      this.context.fillStyle = '#440033';
     }
-    if(this.context==contextBag[numCanvases-1]){this.context.fillStyle = '#440033';}
+    else
+    {
+      for(var i = 0; i < numCanvases; i++)
+      {
+        if(this.context==contextBag[numCanvases-1-i])
+        {
+          var num = (256/numCanvases)*i;
+          var color = '#' + num.toString(16) + '0000';
+          this.context.fillStyle = color;
+        }
+      }
+    }
     this.context.beginPath();    //draw circle                         
     this.context.arc(this.xPos, this.yPos, this.scale, 0, 2*Math.PI);
     this.context.fill();
@@ -50,7 +59,7 @@ class Entity extends GameObject  //anything in the game that collides
   }
 }
 
-class Weapon
+class Projectile
 {
 
   constructor(context, xPos, yPos, xVel, yVel, scale, density)
@@ -77,7 +86,66 @@ class Weapon
     this.xPos += this.xVel*seconds;        
     this.yPos += this.yVel*seconds;
   }
-}         
+}
+
+class Weapon
+{
+
+  constructor(type)
+  {
+    this.context=context
+    this.xPos=xPos;
+    this.yPos=yPos;
+    this.xVel=xVel;
+    this.yVel=yVel;
+    this.scale=scale;
+    this.density=density;
+  }
+
+  draw()
+  {
+    this.context.fillStyle = '#000000';                  
+    this.context.beginPath();
+    this.context.arc(this.xPos, this.yPos, this.scale, 0, 2*Math.PI);     
+    this.context.fill();
+  }
+
+  update(seconds)
+  {
+    this.xPos += this.xVel*seconds;        
+    this.yPos += this.yVel*seconds;
+  }
+}
+
+class PowerUp
+{
+
+  constructor(type)
+  {
+    this.context=context
+    this.xPos=xPos;
+    this.yPos=yPos;
+    this.xVel=xVel;
+    this.yVel=yVel;
+    this.scale=scale;
+    this.density=density;
+  }
+
+  draw()
+  {
+    this.context.fillStyle = '#000000';                  
+    this.context.beginPath();
+    this.context.arc(this.xPos, this.yPos, this.scale, 0, 2*Math.PI);     
+    this.context.fill();
+  }
+
+  update(seconds)
+  {
+    this.xPos += this.xVel*seconds;        
+    this.yPos += this.yVel*seconds;
+  }
+}
+                  
 class Player                    //player character object
 {
 
@@ -97,9 +165,34 @@ class Player                    //player character object
     this.health=health;
     this.isColliding=false;
     this.angle=0;                          //angle of the player's forward vector in relation to true north
-    this.MAX_MAG=25; 
+    this.MAX_MAG=25;
+    this.weapons=[];
   }
 
+  set Health(amount){this.health = amount;}
+  get Health(){return this.health;}
+  set XVel(amount){this.xVel = amount;}
+  get XVel(){return this.xVel;}
+  set YVel(amount){this.yVel = amount;}
+  get YVel(){return this.yVel;}
+  set Angle(amount){this.angle = amount;}
+  get Angle(){return this.angle;}
+  get FirePointX(){return this.firePointX;} 
+  get FirePointY(){return this.firePointY;}
+
+  changeVel(xValue, yValue)
+  {
+    this.xVel += xValue;
+    this.yVel += yValue;
+  }
+  changeAngle(amount)
+  {
+    this.angle += amount;
+  }
+  changeHealth(amount)
+  {
+    this.health += amount;
+  }  
   draw()                                                 //TO DO upgrade player appearance
   {
     this.context.save();

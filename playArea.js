@@ -59,20 +59,20 @@ clearCanvases : function()                                         //clears last
   {
     contextBag[i].clearRect(0,0,canvasBag[i].width,canvasBag[i].height);
   }
-  weaponsContext.clearRect(0,0,weaponsCanvas.width,weaponsCanvas.height);
-  playerContext.clearRect(0,0,playerCanvas.width,playerCanvas.height);
+  playArea.weaponsContext.clearRect(0,0,playArea.weaponsCanvas.width,playArea.weaponsCanvas.height);
+  playArea.playerContext.clearRect(0,0,playArea.playerCanvas.width,playArea.playerCanvas.height);
   view.uiContext.clearRect(0,0,view.uiCanvas.width,view.uiCanvas.height);
 }
 ,
 makePlayerLayer : function()
 {
-  playerCanvas = document.getElementById("player");         //creates player canvas, context, and object               
-  playerContext = playerCanvas.getContext('2d');
+  playArea.playerCanvas = document.getElementById("player");         //creates player canvas, context, and object               
+  playArea.playerContext = playArea.playerCanvas.getContext('2d');
 }
 ,
 makeWeaponsLayer : function()
 {
-  weaponsCanvas = document.getElementById("weapons");                                          //creates weapons canvas, context
-  weaponsContext = weaponsCanvas.getContext('2d');
+  playArea.weaponsCanvas = document.getElementById("weapons");                                          //creates weapons canvas, context
+  playArea.weaponsContext = playArea.weaponsCanvas.getContext('2d');
 }
 };
