@@ -1,25 +1,25 @@
 var view = {
 
-ticks : 0,                                         //tracks frames elapsed
-secs : 0,                                          //tracks seconds elapsed
-mins : 0,                                          //tracks minutes elapsed
-playerScore : 0,                                   //player's actual score
-displayedScore : 0,                                //displayed score for score incrementation animation
-multiplier : 1,                                    //score multiplier
+ticks : 0,                                                //tracks frames elapsed
+secs : 0,                                                 //tracks seconds elapsed
+mins : 0,                                                 //tracks minutes elapsed
+playerScore : 0,                                          //player's actual score
+displayedScore : 0,                                       //displayed score for score incrementation animation
+multiplier : 1,                                           //score multiplier
 
 makeUILayer : function()
 {
   view.uiCanvas = document.getElementById("UI");          //canvas for displaying various user information elements
-  view.uiContext = view.uiCanvas.getContext('2d');             //context for that canvas
+  view.uiContext = view.uiCanvas.getContext('2d');        //context for that canvas
 }
 ,
 updateUI : function()
 {
-  if(!endGame())
+  if(!endGame())                                          //while game isnt over, update game time, score and multplier
   {
     view.updateTimer();
     if(view.displayedScore < view.playerScore){view.displayedScore++;}
-    if(view.multiplier >= 9){view.multiplier = 9;}
+    if(view.multiplier >= 9){view.multiplier = 9;}        //cap multiplier at 9
   }
   else{view.resetMultiplier();}  
   view.updateUIElements();
@@ -27,7 +27,7 @@ updateUI : function()
 ,
 updateTimer : function()
 {
-  view.ticks++;                                               //ticks each frame at 60fps
+  view.ticks++;                                           //ticks each frame at 60fps
   if(view.ticks >= 60)
   {
     view.secs++;
@@ -36,12 +36,12 @@ updateTimer : function()
   if(view.secs >= 60)                                         
   {
     view.mins++;
-    if(spawnRate > 1){spawnRate--;}
+    if(spawnRate > 1){spawnRate--;}                       //temp difficulty increase for each minute played.
     view.secs=0;
   }
 }
 ,
-updateUIElements : function()
+updateUIElements : function()                             //set up time played for display and then display UI elements
 {
   var secDisplay;
   var minDisplay;
@@ -87,9 +87,9 @@ displayUIElement : function(font,color,statement,xPos,yPos)
   view.uiContext.fillText(statement, xPos, yPos);
 }
 ,
-scoreDisplay : function()
-{
-  var maxScoreDigits = 1000000;
+scoreDisplay : function()                                 //set up score to be displayed at a 7 digit number
+{                                                         //refactor to do this on start, and then when max
+  var maxScoreDigits = 1000000;                           //digit changes, rather than every frame.
   var scorePwr = 0;
   var scoreDis = "";
   if(view.playerScore == 0){scoreDis = "0000000";}
@@ -114,7 +114,7 @@ resetMultiplier : function()
 {
   view.multiplier = 1;
 }
-};
+};                                                      //updated from CSE322 to use for CSE4050
   
 
 
