@@ -1,3 +1,7 @@
+function test(){
+  document.getElementById('message').style.display = "success";
+}
+
 //TO DO add UI layer, player score, player health, weapons loadout
 
 //declaration
